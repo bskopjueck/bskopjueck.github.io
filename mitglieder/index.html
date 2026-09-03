@@ -390,12 +390,16 @@ async function loadDashboard(){
 
   // Daten
   const art=ARTEN[info.art]||info.art||'–';
+  const ZAHLUNG={'bar':'Bar/Kasse','ueberweisung':'Überweisung','lastschrift':'SEPA-Lastschrift'};
+  const SHIRT={'XS':'XS','S':'S','M':'M','L':'L','XL':'XL','XXL':'XXL','XXXL':'XXXL'};
   document.getElementById('d-info').innerHTML=[
     ['Vorname',info.vorname],['Nachname',info.nachname],
     ['E-Mail',info.email],['Telefon',info.telefon||'–'],
-    ['Straße',info.strasse||'–'],['PLZ / Ort',(info.plz||'')+' '+(info.ort||'')],
+    ['Straße',info.strasse||'–'],['PLZ / Ort',(info.plz||'').trim()+' '+(info.ort||'').trim()],
     ['Geburtstag',datDE(info.geburtstag)],['Mitgliedsart',art],
     ['Mitglied seit',datDE(info.eintritt)],['Status',info.status==='aktiv'?'Aktiv':'Inaktiv'],
+    ['Kostümgröße',info.shirt||'–'],['Zahlungsweise',ZAHLUNG[info.zahlung]||info.zahlung||'–'],
+    ['Notfallkontakt',info.notfall||'–'],
   ].map(([l,v])=>'<div class="info-item"><label>'+l+'</label><p>'+esc(v||'–')+'</p></div>').join('');
 
   show('sec-dashboard');
