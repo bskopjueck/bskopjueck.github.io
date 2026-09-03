@@ -324,12 +324,18 @@ async function doReset(){
 
 async function loadDashboard(){
   show('sec-loading');
-  const[{data:info},{data:posten},{data:news},{data:termine}]=await Promise.all([
+  const[r_info,r_posten,r_news,r_termine]=await Promise.all([
     sb.rpc('get_my_member_info'),
     sb.rpc('get_my_open_payments'),
     sb.rpc('get_my_news'),
     sb.rpc('get_upcoming_events')
   ]);
+  const info=r_info.data;
+  const posten=r_posten.data;
+  const news=r_news.error?null:r_news.data;
+  const termine=r_termine.error?null:r_termine.data;
+  if(r_news.error)console.warn('News-Fehler:',r_news.error.message);
+  if(r_termine.error)console.warn('Termine-Fehler:',r_termine.error.message);
   if(!info){show('sec-notfound');return;}
 
   // Welcome
@@ -362,7 +368,7 @@ async function loadDashboard(){
   // News
   const nl=Array.isArray(news)?news:(news||[]);
   document.getElementById('d-news').innerHTML=!nl.length
-    ?'<div class="leer"><p>Noch keine News vorhanden.</p></div>'
+    ?'<div class="leer"><p>'+(r_news.error?'News konnten nicht geladen werden – SQL bitte ausführen':'Noch keine News vorhanden.')+'</p></div>'
     :nl.map(n=>'<div class="news-item">'+
     (n.bild_url?'<img src="'+esc(n.bild_url)+'" style="width:100%;max-height:220px;object-fit:cover;border-radius:8px;margin-bottom:.6rem" onerror="this.hidden=true">':'')+
     '<div class="news-datum">'+datDE(n.datum)+'</div>'+
@@ -372,7 +378,7 @@ async function loadDashboard(){
   // Termine
   const tl=termine||[];
   document.getElementById('d-termine').innerHTML=!tl.length
-    ?'<div class="leer"><p>Keine bevorstehenden Termine eingetragen.</p><p style="font-size:.8rem;margin-top:.3rem">Termine werden im Verwaltungssystem gepflegt.</p></div>'
+    ?'<div class="leer"><p>'+(r_termine.error?'Termine konnten nicht geladen werden':'Keine bevorstehenden Termine eingetragen.')+'</p><p style="font-size:.8rem;margin-top:.3rem">Termine werden im Verwaltungssystem gepflegt.</p></div>'
     :tl.filter(t=>t.sichtbarFuer!=='keine'&&(t.sichtbarFuer!=='vorstand'||istVorstand)).map(t=>{
       const d=new Date(t.datum+'T00:00:00');
       let meta=[];
