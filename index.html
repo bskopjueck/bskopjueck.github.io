@@ -760,16 +760,45 @@ async function sponsorForm(id){
     try{var r=await cloudFetch('/rest/v1/sponsoren?id=eq.'+id+'&limit=1',{},true);var arr=await r.json();s=arr[0]||{};}catch(e){}
   }
   openModal('<h2>'+(id?'Sponsor bearbeiten':'Neuer Sponsor')+'</h2>'+
-  '<div class="frow"><div class="field"><label>Reihenfolge (kleinere Zahl = weiter vorne)</label><input id="sf_sort" type="number" value="'+(s.reihenfolge||100)+'" style="width:100px"></div>'+
-  '<div class="field"><label>Aktiv</label><select id="sf_aktiv"><option value="true"'+(s.aktiv!==false?' selected':'')+'>Ja – sichtbar auf Website</option><option value="false"'+(s.aktiv===false?' selected':'')+'>Nein – ausgeblendet</option></select></div></div>'+
-  '<div class="field"><label>Name</label><input id="sf_name" value="'+esc(s.name||'')+'"></div>'+
-  '<div class="field"><label>Website-URL</label><input id="sf_web" placeholder="https://www.example.de" value="'+esc(s.website||'')+'"></div>'+
-  '<div class="field"><label>Logo-URL</label><input id="sf_logo" placeholder="https://... oder leer" value="'+esc(s.logo_url||'')+'" oninput="document.getElementById(\'sf_logo_prev\').innerHTML=this.value?\'<img src=\"\'+this.value+\'\" style=\"max-height:80px;max-width:200px;margin-top:.4rem;border:1px solid var(--linie);border-radius:8px;padding:.3rem\">\':\'\'">'+
-  '<div id="sf_logo_prev">'+(s.logo_url?'<img src="'+esc(s.logo_url)+'" style="max-height:80px;max-width:200px;margin-top:.4rem;border:1px solid var(--linie);border-radius:8px;padding:.3rem">':'')+'</div>'+
-  '<small style="color:var(--grau)">Tipp: Logo-URL direkt von der Website des Sponsors kopieren oder bei <a href="https://postimages.org" target="_blank">postimages.org</a> hochladen</small></div>'+
-  '<div class="field"><label>Beschreibung (optional)</label><input id="sf_besch" placeholder="z.B. Unser Hauptsponsor seit 2020" value="'+esc(s.beschreibung||'')+'"></div>'+
-  '<div class="mfoot">'+(id?'<button class="btn btn-ghost" onclick="sponsorLoeschen(\''+id+'\')" style="color:var(--rot)">Löschen</button>':'')+'<button class="btn btn-hell" onclick="closeModal()">Abbrechen</button><button class="btn btn-rot" onclick="sponsorSpeichern(\''+(id||'')+'\')">Speichern</button></div>');
+  '<div class="frow"><div class="field"><label>Reihenfolge</label><input id="sf_sort" type="number" value="'+(s.reihenfolge||100)+'" style="width:90px" oninput="spoVorschau()"></div>'+
+  '<div class="field"><label>Aktiv</label><select id="sf_aktiv" onchange="spoVorschau()"><option value="true"'+(s.aktiv!==false?' selected':'')+'>Ja</option><option value="false"'+(s.aktiv===false?' selected':'')+'>Nein</option></select></div></div>'+
+  '<div class="field"><label>Name</label><input id="sf_name" value="'+esc(s.name||'')+'" placeholder="z.B. Muster GmbH" oninput="spoVorschau()"></div>'+
+  '<div class="field"><label>Website</label><input id="sf_web" placeholder="https://www.example.de" value="'+esc(s.website||'')+'" oninput="spoVorschau()"></div>'+
+  '<div class="field"><label>Logo</label>'+
+  '<div style="display:flex;gap:.6rem;align-items:flex-start;flex-wrap:wrap;margin-bottom:.4rem">'+
+  '<label class="btn btn-hell btn-sm" style="cursor:pointer">Logo hochladen<input type="file" id="sf_logo_file" accept="image/*" style="display:none" onchange="spoLogoUpload(this)"></label>'+
+  '<input id="sf_logo" placeholder="oder Logo-URL einfügen" value="'+esc(s.logo_url||'')+'" style="flex:1;min-width:160px" oninput="spoVorschau()"></div>'+
+  '<small style="color:var(--grau)">Direkt hochladen (max. 500KB) oder externe URL</small></div>'+
+  '<div class="field"><label>Vorschau – so erscheint der Sponsor auf der Website:</label>'+
+  '<div id="sf_vorschau" style="background:#f5f7f5;border-radius:10px;padding:1rem;margin-top:.4rem">'+spoKarte(s)+'</div></div>'+
+  '<div class="mfoot">'+(id?'<button class="btn btn-ghost" onclick="sponsorLoeschen(\''+id+'\')" style="color:var(--rot)">Löschen</button>':'')+'<button class="btn btn-hell" onclick="closeModal()">Abbrechen</button><button class="btn btn-rot" onclick="sponsorSpeichern(\''+( id||'')+'\')">Speichern & live</button></div>');
 }
+function spoKarte(s){
+  var name=s.name||val('sf_name')||'';
+  var logo=s.logo_url||val('sf_logo')||'';
+  var web=s.website||val('sf_web')||'';
+  var domain=web.replace(/https?:\/\//,'').split('/')[0];
+  return '<div style="background:#fff;border:1px solid #dde8dd;border-radius:10px;padding:1.2rem 1rem;text-align:center;width:180px;box-shadow:0 2px 8px rgba(0,0,0,.07);display:inline-block">'+
+    (logo?'<img src="'+esc(logo)+'" style="max-height:56px;max-width:140px;object-fit:contain;margin-bottom:.5rem;display:block;margin-left:auto;margin-right:auto" onerror="this.hidden=true">':
+    '<div style="width:56px;height:56px;background:#e8ece8;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto .5rem;font-size:1.5rem;font-weight:800;color:#666">'+esc((name||'?')[0].toUpperCase())+'</div>')+
+    '<div style="font-weight:700;font-size:.82rem;margin-bottom:.15rem">'+esc(name||'Sponsorname')+'</div>'+
+    '<div style="font-size:.7rem;color:#888">'+esc(domain||'website.de')+'</div></div>';
+}
+function spoVorschau(){
+  var e=document.getElementById('sf_vorschau');
+  if(e)e.innerHTML=spoKarte({});
+}
+function spoLogoUpload(input){
+  var file=input.files[0];if(!file)return;
+  if(file.size>500000){toast('Logo zu groß – bitte unter 500KB',true);return;}
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    document.getElementById('sf_logo').value=ev.target.result;
+    spoVorschau();toast('Logo geladen ✓');
+  };
+  reader.readAsDataURL(file);
+}
+
 async function sponsorSpeichern(id){
   var o={name:val('sf_name'),website:val('sf_web')||null,logo_url:val('sf_logo')||null,beschreibung:val('sf_besch')||null,reihenfolge:parseInt(val('sf_sort'),10)||100,aktiv:val('sf_aktiv')!=='false'};
   if(!o.name){toast('Name fehlt',true);return;}
