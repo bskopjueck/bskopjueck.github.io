@@ -119,23 +119,46 @@ td.akt{white-space:nowrap}
   #belegPrint{display:block;position:absolute;left:0;top:0;width:100%;padding:0}
   .beleg{page-break-after:always}
 }
-.beleg{font-family:var(--body);color:#111;max-width:760px;margin:0 auto 2rem;padding:2.2rem 2.4rem;background:#fff;border:1px solid #ddd;border-radius:10px}
-.beleg .kopf{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid var(--rot);padding-bottom:1rem;margin-bottom:1.2rem}
-.beleg .kopf h2{font-family:var(--display);font-size:1.3rem;color:var(--gruen-dunkel)}
-.beleg .kopf small{display:block;color:#555;font-size:.8rem;line-height:1.5}
-.beleg .kopf .bnr{text-align:right;font-size:.85rem}
-.beleg .kopf .bnr b{font-family:var(--display);font-size:1.2rem;color:var(--rot);display:block}
-.beleg .an{margin-bottom:1.2rem;font-size:.9rem}
-.beleg table{width:100%;border-collapse:collapse;font-size:.88rem;margin-bottom:1rem}
-.beleg th{background:var(--tint);text-align:left;padding:.5rem .6rem;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em}
-.beleg td{padding:.5rem .6rem;border-bottom:1px solid #eee}
-.beleg .total td{font-weight:800;border-top:2px solid var(--gruen-dunkel);border-bottom:none;font-size:1rem}
-.beleg .satz{font-size:.78rem;color:#555;background:#FAFAFA;padding:.6rem .8rem;border-radius:6px;margin:1rem 0}
-.beleg .zahl{font-size:.85rem;margin:1rem 0}
-.beleg .sig{display:flex;gap:2rem;margin-top:2.4rem}
-.beleg .sig div{flex:1;border-top:1px solid #999;padding-top:.3rem;font-size:.75rem;color:#555}
-.beleg .stempel{display:inline-block;border:2px solid var(--gruen);color:var(--gruen);font-family:var(--display);font-weight:900;padding:.2rem .6rem;border-radius:4px;transform:rotate(-4deg);font-size:.85rem}
-.print-actions{max-width:760px;margin:0 auto 1rem;display:flex;gap:.6rem;justify-content:flex-end}
+.beleg{font-family:'Inter',system-ui,sans-serif;color:#1a1a1a;max-width:740px;margin:0 auto 2rem;background:#fff;border:1px solid #d0d7de;border-radius:4px;overflow:hidden}
+/* Professioneller Briefkopf */
+.beleg .kopf{display:flex;justify-content:space-between;align-items:flex-start;padding:1.8rem 2rem 1.4rem;border-bottom:3px solid #0A4D22;background:linear-gradient(to right,#f8fbf8,#fff)}
+.beleg .kopf-links h2{font-family:'Archivo',system-ui,sans-serif;font-size:1.15rem;font-weight:800;color:#0A4D22;margin:0 0 .25rem}
+.beleg .kopf-links small{display:block;color:#555;font-size:.75rem;line-height:1.6}
+.beleg .kopf-rechts{text-align:right}
+.beleg .kopf-rechts .beleg-typ{font-family:'Archivo',system-ui,sans-serif;font-size:1rem;font-weight:800;color:#B71C1C;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:.3rem}
+.beleg .kopf-rechts .beleg-nr{font-size:.75rem;color:#444;line-height:1.7}
+.beleg .kopf-rechts .beleg-nr strong{color:#111;font-size:.85rem}
+.beleg .beleg-body{padding:1.4rem 2rem}
+/* Adressfeld */
+.beleg .an{margin-bottom:1.2rem}
+.beleg .an .an-label{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:#888;margin-bottom:.2rem}
+.beleg .an strong{font-size:.92rem;display:block}
+.beleg .an small{font-size:.8rem;color:#555;line-height:1.5}
+/* Buchungssatz */
+.beleg .satz{background:#f0f5f0;border-left:3px solid #0A4D22;padding:.6rem .9rem;margin:.8rem 0 1rem;font-size:.78rem;color:#2a2a2a;border-radius:0 6px 6px 0}
+.beleg .satz strong{color:#0A4D22;font-size:.82rem}
+/* Tabellen */
+.beleg table{width:100%;border-collapse:collapse;font-size:.84rem;margin-bottom:.8rem}
+.beleg thead th{background:#0A4D22;color:#fff;text-align:left;padding:.45rem .7rem;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.beleg tbody td{padding:.5rem .7rem;border-bottom:1px solid #eee;vertical-align:top}
+.beleg tbody tr:last-child td{border-bottom:none}
+.beleg .total-row td{font-weight:800;border-top:2.5px solid #0A4D22;background:#f8fbf8;font-size:.95rem;padding:.6rem .7rem}
+/* Zahlungsinfos */
+.beleg .zahl-box{background:#fff8e1;border:1px solid #f9a825;border-radius:6px;padding:.9rem 1.1rem;margin:1rem 0;font-size:.82rem;line-height:1.6}
+.beleg .zahl-box strong{color:#e65100;display:block;margin-bottom:.3rem;font-size:.85rem}
+/* Unterschriftenbereich */
+.beleg .sig{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem 2rem;margin-top:2rem;padding-top:1rem;border-top:1px solid #e0e0e0}
+.beleg .sig-4{grid-template-columns:1fr 1fr 1fr 1fr}
+.beleg .sig div{text-align:center}
+.beleg .sig .sig-linie{border-bottom:1px solid #666;height:1.8rem;margin-bottom:.3rem}
+.beleg .sig small{font-size:.68rem;color:#666;display:block}
+/* Brief-Layout */
+.beleg .brief-meta{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.4rem;padding-bottom:.8rem;border-bottom:1px solid #eee}
+.beleg .brief-betreff{font-weight:800;font-size:1rem;color:#111;margin-bottom:1rem}
+.beleg p{margin:.35rem 0 .7rem;line-height:1.55;font-size:.88rem}
+.beleg .stempel{display:inline-block;border:2px solid #0A4D22;color:#0A4D22;font-weight:900;padding:.2rem .7rem;border-radius:4px;transform:rotate(-3deg);font-size:.82rem;font-family:'Archivo',system-ui}
+.beleg .beleg-footer{background:#f0f5f0;border-top:1px solid #d0d7de;padding:.6rem 2rem;font-size:.7rem;color:#666;display:flex;justify-content:space-between}
+.print-actions{max-width:740px;margin:0 auto 1rem;display:flex;gap:.6rem;justify-content:flex-end}
 @media(max-width:900px){
   .side{position:fixed;left:-260px;z-index:90;transition:left .3s;height:100vh}
   .side.open{left:0;box-shadow:8px 0 30px rgba(0,0,0,.3)}
@@ -148,15 +171,17 @@ th.sortable{cursor:pointer;user-select:none}th.sortable:hover{color:var(--gruen-
 .warnb{display:inline-block;background:#FFF3CC;color:#7A5B00;border-radius:999px;font-size:.68rem;font-weight:800;padding:.1rem .45rem;cursor:help}
 /* BRIEF V2 */
 .brief{font-size:.9rem}
-.bk{display:flex;justify-content:space-between;gap:1.5rem;margin-bottom:.6rem}
-.bk-l{flex:1}.bk-abs{font-size:.64rem;color:#777;border-bottom:1px solid #ccc;padding-bottom:.2rem;margin:1.6rem 0 .9rem}
-.bk-an{min-height:84px;line-height:1.5}
-.bk-r{width:185px;font-size:.72rem;color:#444;line-height:1.5;border-left:2px solid var(--rot);padding-left:.7rem;flex-shrink:0}
-.bk-datum{text-align:right;margin:.6rem 0 1.4rem;font-size:.86rem}
-.bk-titel{font-weight:800;font-size:1.05rem;margin-bottom:1rem;line-height:1.3}.bk-titel small{display:block;font-weight:600;font-size:.8rem;color:#444}
-.bk-mg{font-weight:700;margin-bottom:1rem;line-height:1.4}
-.bk-body{line-height:1.65}
-.bk-sig{margin-top:2.4rem;gap:1rem}.bk-sig div{font-size:.8rem;text-align:center}
+.bk{display:flex;justify-content:space-between;gap:1rem;margin-bottom:.4rem}
+.bk-l{flex:1}.bk-abs{font-size:.63rem;color:#777;border-bottom:1px solid #ccc;padding-bottom:.15rem;margin:.8rem 0 .5rem}
+.bk-an{min-height:72px;line-height:1.45;font-size:.88rem}
+.bk-r{width:175px;font-size:.7rem;color:#444;line-height:1.45;border-left:2px solid #0A4D22;padding-left:.6rem;flex-shrink:0}
+.bk-datum{text-align:right;margin:.3rem 0 .8rem;font-size:.84rem}
+.bk-titel{font-weight:800;font-size:1rem;margin-bottom:.6rem;line-height:1.3;padding:.4rem 0;border-bottom:1px solid #e8f0e8}.bk-titel small{display:block;font-weight:600;font-size:.78rem;color:#444;margin-top:.15rem}
+.bk-mg{font-weight:700;margin-bottom:.6rem;line-height:1.4;font-size:.88rem}
+.bk-body{line-height:1.6;font-size:.86rem}
+.bk-body p{margin:.25rem 0 .5rem}
+.bk-body ul,bk-body ol{margin:.2rem 0 .4rem;padding-left:1.2rem;line-height:1.5;font-size:.84rem}
+.bk-sig{margin-top:1.4rem;gap:.8rem}.bk-sig div{font-size:.75rem;text-align:center}
 .beleg table.f{margin:.2rem 0 .6rem}.beleg table.f td{border:none;padding:.28rem .4rem;vertical-align:bottom}
 .sline{display:inline-block;min-width:280px;border-bottom:1px solid #333;padding:0 .3rem .1rem;font-weight:600}
 .vertrag h3{color:var(--gruen-dunkel)}
@@ -575,14 +600,31 @@ function belegHTML(ids,titel){
   var b0=bs[0];var k=kontakt(b0.kontaktId);var m=b0.mitgliedId?mitglied(b0.mitgliedId):null;var summe=bs.reduce(function(a,b){return a+b.betrag;},0);
   var istForderung=bs.every(function(b){return b.soll==='1400';});var istZahlung=bs.every(function(b){return b.art==='zahlung';});
   var t=titel||(istZahlung?'Zahlungsbestätigung / Quittung':istForderung?'Beitragsrechnung':'Buchungsbeleg');
-  return '<div class="beleg"><div class="kopf"><div><h2>'+esc(s.vereinsname)+' '+esc(s.rechtsform)+'</h2><small>'+esc(s.strasse)+' · '+esc(s.plz)+' '+esc(s.ort)+'<br>'+esc(s.email)+(s.steuernummer?' · St.-Nr. '+esc(s.steuernummer):'')+'</small></div><div class="bnr"><b>'+t+'</b>Beleg-Nr. '+(bs.length===1?b0.belegnr:bs.map(function(b){return b.belegnr;}).join(', '))+'<br>Datum: '+dt(b0.datum)+(m?'<br>Mitglieds-Nr. <b style="display:inline;font-size:.9rem;color:#111">'+m.mitgliedsnr+'</b>':'')+'</div></div>'+
-  (k?'<div class="an"><small style="color:#777">'+(istZahlung?'Zahlung erhalten von':istForderung?'Rechnungsempfänger':'Geschäftspartner')+'</small><br><b>'+esc(kName(k.id))+'</b><br>'+esc(k.strasse||'')+'<br>'+esc(k.plz||'')+' '+esc(k.ort||'')+'</div>':'')+
-  '<table><tr><th>Pos.</th><th>Bezeichnung</th><th>Buchung</th><th style="text-align:right">Betrag</th></tr>'+bs.map(function(b,i){return '<tr><td>'+(i+1)+'</td><td>'+esc(b.text)+'</td><td style="font-size:.75rem;color:#666">'+esc(kontoLabel(b.soll))+' an '+esc(kontoLabel(b.haben))+'</td><td style="text-align:right">'+eur(b.betrag)+'</td></tr>';}).join('')+'<tr class="total"><td colspan="3">'+(istForderung?'Zu zahlender Betrag':'Gesamtbetrag')+'</td><td style="text-align:right">'+eur(summe)+'</td></tr></table>'+
-  (istForderung?'<div class="zahl">Bitte überweise den Betrag innerhalb von 14 Tagen'+(s.iban?' auf folgendes Konto:<br><b>'+esc(s.vereinsname)+'</b> · IBAN <b>'+esc(s.iban)+'</b>'+(s.bank?' · '+esc(s.bank):''):'.')+'<br>Verwendungszweck: <b>'+(m?m.mitgliedsnr+' ':'')+bs.map(function(b){return b.belegnr;}).join(' ')+'</b></div>':'')+
-  (istZahlung?'<div class="zahl"><span class="stempel">BEZAHLT</span> &nbsp; Wir bestätigen den Erhalt des Betrages. Vielen Dank!</div>':'')+
-  (s.gemeinnuetzig&&bs.some(function(b){return b.haben==='4100'||b.haben==='4000';})?'<div class="satz">Hinweis: Der Verein ist als gemeinnützig anerkannt. Mitgliedsbeiträge und Spenden können steuerlich begünstigt sein; eine Zuwendungsbestätigung stellen wir auf Anfrage aus.</div>':'')+
-  '<div class="sig"><div>'+esc(s.vorsitz||'1. Vorsitzende/r')+'</div><div>'+esc(s.kassenwart||'Kassenwart/in')+'</div></div><p style="font-size:.7rem;color:#888;margin-top:1.4rem">Erstellt am '+dt(heute())+' · '+esc(s.vereinsname)+' '+esc(s.rechtsform)+'</p></div>';
+  var fuss='<div class="beleg-footer"><span>'+esc(s.vereinsname)+' '+esc(s.rechtsform)+'</span><span>'+esc(s.email)+'</span><span>'+esc(s.plz)+' '+esc(s.ort)+'</span></div>';
+  var bnr=bs.length===1?b0.belegnr:bs.map(function(b){return b.belegnr;}).join(', ');
+  return '<div class="beleg">'+
+  '<div class="kopf">'+
+  '<div class="kopf-links"><h2>'+esc(s.vereinsname)+' '+esc(s.rechtsform)+'</h2>'+
+  '<small>'+esc(s.strasse)+' &middot; '+esc(s.plz)+' '+esc(s.ort)+'<br>'+esc(s.email)+(s.iban?'<br>IBAN: '+esc(s.iban):'')+(s.steuernummer?'<br>St.-Nr. '+esc(s.steuernummer):'')+'</small></div>'+
+  '<div class="kopf-rechts"><span class="beleg-typ">'+t+'</span>'+
+  '<div class="beleg-nr">Beleg-Nr.: <strong>'+bnr+'</strong><br>Datum: <strong>'+dt(b0.datum)+'</strong>'+(m?'<br>Mitglieds-Nr.: <strong>'+m.mitgliedsnr+'</strong>':'')+'</div></div></div>'+
+  '<div class="beleg-body">'+
+  (k?'<div class="an"><div class="an-label">'+(istZahlung?'Zahlung erhalten von':istForderung?'Rechnung an':'Buchungspartner')+'</div>'+
+  '<strong>'+esc(kName(k.id))+'</strong><small>'+esc(k.strasse||'')+(k.strasse?'<br>':'')+(k.plz?esc(k.plz)+' ':'')+(k.ort?esc(k.ort):'')+'</small></div>':'')+
+  '<div class="satz"><strong>Buchungssatz:</strong> '+esc(kontoLabel(b0.soll))+' <b style="color:#B71C1C">an</b> '+esc(kontoLabel(b0.haben))+(bs.length>1?' &mdash; '+bs.length+' Buchungen':'')+'</div>'+
+  '<table><thead><tr><th style="width:2.5rem">#</th><th>Bezeichnung</th><th style="width:10rem">Kto. Soll / Haben</th><th style="text-align:right;width:8rem">Betrag</th></tr></thead><tbody>'+
+  bs.map(function(b,i){return '<tr><td style="color:#888;font-size:.75rem">'+(i+1)+'</td><td>'+esc(b.text)+'</td><td style="font-size:.72rem;color:#666">'+kontoLabel(b.soll)+' / '+kontoLabel(b.haben)+'</td><td style="text-align:right;font-weight:600">'+eur(b.betrag)+'</td></tr>';}).join('')+
+  '</tbody><tfoot><tr class="total-row"><td colspan="3">'+(istForderung?'Zu zahlender Betrag':'Gesamtbetrag')+'</td><td style="text-align:right">'+eur(summe)+'</td></tr></tfoot></table>'+
+  (istForderung?'<div class="zahl-box"><strong>Bitte überweisen Sie bis zum '+dt(fristDatum(14))+' (14 Tage):</strong>'+(s.iban?'Empfänger: <b>'+esc(s.kontoinhaber||s.vereinsname)+'</b><br>IBAN: <b>'+esc(s.iban)+'</b>'+(s.bank?' &nbsp;&middot;&nbsp; '+esc(s.bank):'')+'<br>':'')+'Verwendungszweck: <b>'+(m?m.mitgliedsnr+' ':'')+bs.map(function(b){return b.belegnr;}).join(' ')+'</b></div>':'')+
+  (istZahlung?'<div style="margin:1rem 0;display:flex;align-items:center;gap:1rem"><span class="stempel">BEZAHLT</span><span style="font-size:.85rem;color:#2e7d32">Wir bestätigen den Zahlungseingang. Vielen Dank!</span></div>':'')+
+  (s.gemeinnuetzig&&bs.some(function(b){return b.haben==='4100'||b.haben==='4000';})&&!istForderung?'<div class="satz" style="margin-top:.8rem;font-size:.75rem">Hinweis: Der Verein ist als gemeinn&uuml;tzig anerkannt. Mitgliedsbeitr&auml;ge und Spenden k&ouml;nnen steuerlich beg&uuml;nstigt sein; eine Zuwendungsbest&auml;tigung stellen wir auf Anfrage aus.</div>':'')+
+  '<div class="sig" style="margin-top:1.8rem">'+
+  '<div><div class="sig-linie"></div><small>'+esc(s.vorsitz||'1. Vorsitzende/r')+'</small></div>'+
+  '<div><div class="sig-linie"></div><small>'+esc(s.kassenwart||'Kassenwart/in')+'</small></div></div>'+
+  '<p style="font-size:.7rem;color:#aaa;margin-top:1rem;text-align:right">Erstellt am '+dt(heute())+' &mdash; '+esc(s.vereinsname)+'</p>'+
+  '</div>'+fuss+'</div>';
 }
+
 function belegDrucken(ids,titel){printHTML(belegHTML(ids,titel));}
 function printHTML(html){
   var p=document.getElementById('belegPrint');p.innerHTML=html;
@@ -608,10 +650,36 @@ function vAuswertung(){
 }
 function euerDrucken(j){
   var s=DB.settings;var einn=DB.konten.filter(function(k){return k.typ==='einnahme';}),ausg=DB.konten.filter(function(k){return k.typ==='ausgabe';});
-  var se=0,sa=0;var rows=function(list,isA){return list.map(function(k){var v=saldoJahr(k.nr,j);if(isA)sa+=v;else se+=v;return '<tr><td>'+k.nr+' '+esc(k.name)+'</td><td style="text-align:right">'+eur(v)+'</td></tr>';}).join('');};
+  var se=0,sa=0;
+  var rows=function(list,isA){return list.map(function(k){var v=saldoJahr(k.nr,j);if(isA)sa+=v;else se+=v;if(Math.abs(v)<0.005)return '';return '<tr><td style="padding:.4rem .7rem">'+k.nr+' '+esc(k.name)+'</td><td style="text-align:right;padding:.4rem .7rem;font-weight:500">'+eur(v)+'</td></tr>';}).join('');};
   var re=rows(einn,false),ra=rows(ausg,true);
-  printHTML('<div class="beleg"><div class="kopf"><div><h2>'+esc(s.vereinsname)+' '+esc(s.rechtsform)+'</h2><small>Einnahmen-Überschuss-Rechnung</small></div><div class="bnr"><b>Geschäftsjahr '+j+'</b>Stand '+dt(heute())+'</div></div><table><tr><th colspan="2">Einnahmen</th></tr>'+re+'<tr class="total"><td>Summe Einnahmen</td><td style="text-align:right">'+eur(se)+'</td></tr></table><table><tr><th colspan="2">Ausgaben</th></tr>'+ra+'<tr class="total"><td>Summe Ausgaben</td><td style="text-align:right">'+eur(sa)+'</td></tr></table><table><tr class="total"><td>'+(se-sa>=0?'Überschuss':'Fehlbetrag')+' '+j+'</td><td style="text-align:right">'+eur(se-sa)+'</td></tr></table><table><tr><th colspan="2">Vermögen am Stichtag</th></tr><tr><td>Kasse</td><td style="text-align:right">'+eur(saldo('1000'))+'</td></tr><tr><td>Bank</td><td style="text-align:right">'+eur(saldo('1200'))+'</td></tr><tr><td>Offene Forderungen</td><td style="text-align:right">'+eur(saldo('1400'))+'</td></tr></table><div class="sig"><div>'+esc(s.kassenwart||'Kassenwart/in')+'</div><div>Kassenprüfer/in</div><div>Kassenprüfer/in</div></div></div>');
+  var fuss='<div class="beleg-footer"><span>'+esc(s.vereinsname)+' '+esc(s.rechtsform)+'</span><span>'+esc(s.email)+'</span><span>Stand: '+dt(heute())+'</span></div>';
+  printHTML('<div class="beleg">'+
+  '<div class="kopf">'+
+  '<div class="kopf-links"><h2>'+esc(s.vereinsname)+' '+esc(s.rechtsform)+'</h2>'+
+  '<small>'+esc(s.strasse)+' &middot; '+esc(s.plz)+' '+esc(s.ort)+'<br>'+esc(s.email)+'</small></div>'+
+  '<div class="kopf-rechts"><span class="beleg-typ">EÜR &mdash; Einnahmen-Überschuss-Rechnung</span>'+
+  '<div class="beleg-nr">Geschäftsjahr: <strong>'+j+'</strong><br>Erstellt: <strong>'+dt(heute())+'</strong></div></div></div>'+
+  '<div class="beleg-body">'+
+  '<table style="margin-bottom:.8rem"><thead><tr><th colspan="2">Einnahmen</th></tr></thead><tbody>'+re+'</tbody>'+
+  '<tfoot><tr class="total-row"><td>Summe Einnahmen</td><td style="text-align:right">'+eur(se)+'</td></tr></tfoot></table>'+
+  '<table style="margin-bottom:.8rem"><thead><tr><th colspan="2">Ausgaben</th></tr></thead><tbody>'+ra+'</tbody>'+
+  '<tfoot><tr class="total-row"><td>Summe Ausgaben</td><td style="text-align:right">'+eur(sa)+'</td></tr></tfoot></table>'+
+  '<table style="margin-bottom:.8rem"><thead><tr><th style="background:'+(se-sa>=0?'#1b5e20':'#b71c1c')+'" colspan="2">'+(se-sa>=0?'Überschuss':'Fehlbetrag')+' '+j+'</th></tr></thead>'+
+  '<tfoot><tr class="total-row"><td>'+(se-sa>=0?'Überschuss':'Fehlbetrag')+'</td><td style="text-align:right;color:'+(se-sa>=0?'#1b5e20':'#b71c1c')+';font-size:1.1rem">'+eur(se-sa)+'</td></tr></tfoot></table>'+
+  '<table><thead><tr><th colspan="2">Geldbestände am '+dt(heute())+'</th></tr></thead><tbody>'+
+  '<tr><td style="padding:.4rem .7rem">1000 Kasse</td><td style="text-align:right;padding:.4rem .7rem;font-weight:500">'+eur(saldo('1000'))+'</td></tr>'+
+  '<tr><td style="padding:.4rem .7rem">1200 Bank</td><td style="text-align:right;padding:.4rem .7rem;font-weight:500">'+eur(saldo('1200'))+'</td></tr>'+
+  '</tbody><tfoot><tr class="total-row"><td>Gesamt liquide Mittel</td><td style="text-align:right">'+eur(saldo('1000')+saldo('1200'))+'</td></tr></tfoot></table>'+
+  (saldo('1400')>0.01?'<p style="font-size:.78rem;color:#666;margin:.4rem 0">Offene Forderungen: <strong>'+eur(saldo('1400'))+'</strong></p>':'')+
+  '<div class="sig sig-4" style="grid-template-columns:1fr 1fr 1fr 1fr;margin-top:2rem">'+
+  '<div><div class="sig-linie"></div><small>'+esc(s.kassenwart||'Kassenwart/in')+'</small></div>'+
+  '<div><div class="sig-linie"></div><small>'+esc(s.vorsitz||'1. Vorsitzende/r')+'</small></div>'+
+  '<div><div class="sig-linie"></div><small>Kassenprüfer/in 1</small></div>'+
+  '<div><div class="sig-linie"></div><small>Kassenprüfer/in 2</small></div></div>'+
+  '</div>'+fuss+'</div>');
 }
+
 function exportJournalCSV(j){
   var rows=[['Datum','Beleg','Text','Soll','Haben','Betrag','Kontakt','Status']];
   DB.buchungen.filter(function(b){return jahrVon(b.datum)===j;}).sort(function(a,b){return a.datum.localeCompare(b.datum);}).forEach(function(b){rows.push([dt(b.datum),b.belegnr,b.text,kontoLabel(b.soll),kontoLabel(b.haben),String(b.betrag).replace('.',','),kName(b.kontaktId),b.status]);});
@@ -963,11 +1031,19 @@ function schreibenAnzeigen(id){
 /* ---------- Briefkopf im Vereinslayout ---------- */
 function briefKopf(empf,datum){
   var s=DB.settings;
-  return '<div class="bk"><div class="bk-l"><div class="bk-abs">'+esc(s.vereinsname)+', '+esc(s.strasse)+', '+esc(s.plz)+' '+esc(s.ort)+'</div><div class="bk-an"><b>'+esc(empf.name)+'</b><br>'+esc(empf.strasse||'')+'<br>'+esc(empf.plz||'')+' '+esc(empf.ort||'')+'</div></div>'+
-  '<div class="bk-r"><b>'+esc(s.vereinsname)+'</b><br>'+esc(s.strasse)+'<br>'+esc(s.plz)+' '+esc(s.ort)+'<br><br>'+(s.instagram?'Instagram: '+esc(s.instagram)+'<br>':'')+'<b>Kontakt:</b><br>'+esc(s.email)+'<br>'+(s.telefon?esc(s.telefon)+'<br>':'')+'<br><b>Verantwortliche:</b><br>'+(s.vorstand||[]).map(esc).join('<br>')+'</div></div>'+
-  '<div class="bk-datum">'+esc(s.ort)+', '+dt(datum||heute())+'</div>';
+  return '<div class="kopf">'+
+  '<div class="kopf-links"><h2>'+esc(s.vereinsname)+' '+esc(s.rechtsform)+'</h2>'+
+  '<small>'+esc(s.strasse)+' &middot; '+esc(s.plz)+' '+esc(s.ort)+'<br>'+esc(s.email)+(s.instagram?'<br>'+esc(s.instagram):'')+'</small></div>'+
+  '<div class="kopf-rechts" style="text-align:right;font-size:.78rem;color:#555;line-height:1.6">'+
+  '<strong>'+esc(s.vereinsname)+'</strong><br>'+esc(s.strasse)+'<br>'+esc(s.plz)+' '+esc(s.ort)+'<br><br>'+
+  (s.vorstand||[]).slice(0,3).map(function(n){return esc(n)+' (Vorstand)';}).join('<br>')+'</div></div>'+
+  '<div class="beleg-body">'+
+  '<div class="bk"><div class="bk-l">'+
+  '<div class="bk-abs">'+esc(s.vereinsname)+' &middot; '+esc(s.strasse)+' &middot; '+esc(s.plz)+' '+esc(s.ort)+'</div>'+
+  '<div class="bk-an"><strong>'+esc(empf.name)+'</strong><br>'+esc(empf.strasse||'')+'<br>'+esc(empf.plz||'')+' '+esc(empf.ort||'')+'</div></div>'+
+  '<div style="text-align:right;font-size:.8rem;color:#555">'+esc(s.ort)+', '+dt(datum||heute())+'</div></div>';
 }
-function briefFuss(){var v=DB.settings.vorstand||[];return v.length?'<div class="sig bk-sig">'+v.map(function(n){return '<div>'+esc(n)+'<br><small>(Vorstand)</small></div>';}).join('')+'</div>':'';}
+function briefFuss(){var v=DB.settings.vorstand||[];return v.length?'<div class="sig bk-sig">'+v.map(function(n){return '<div><div class="sig-linie"></div><small>'+esc(n)+' (Vorstand)</small></div>';}).join('')+'</div>':'';}
 function briefHTML(typ,mitgliedId,extra){
   extra=extra||{};var s=DB.settings;var m=mitglied(mitgliedId);if(!m)return '';var k=kontakt(m.kontaktId)||{};
   var posten=DB.buchungen.filter(function(b){return b.mitgliedId===m.id&&b.status==='offen';});
@@ -1055,22 +1131,38 @@ function sepaDrucken(id){printHTML(sepaHTML(id));schreibenLog('sepa',id,{});toas
 /* ---------- Mitgliedschaftsvertrag ---------- */
 function vertragHTML(id){
   var m=mitglied(id);if(!m)return '';var k=kontakt(m.kontaktId)||{};var s=DB.settings;var vn=s.vereinsname+' '+s.rechtsform;
-  var p='<p style="margin:.4rem 0 .7rem;line-height:1.55">';var h='<h3 style="font-size:.95rem;margin:1rem 0 .2rem">';
-  return '<div class="beleg vertrag"><div style="text-align:center;margin-bottom:1.2rem"><h2 style="font-family:var(--display);font-size:1.4rem;color:var(--gruen-dunkel)">Mitgliedschaftsvertrag</h2><small>Mitgliedsnummer: <b>'+m.mitgliedsnr+'</b></small></div>'+
-  p+'zwischen dem<br><b>'+esc(vn)+'</b><br>'+esc(s.strasse)+'<br>'+esc(s.plz)+' '+esc(s.ort)+'<br><i>– nachfolgend „Verein“ genannt –</i></p>'+
-  p+'und<br><b>'+esc(kName(k.id))+'</b><br>geboren am '+dt(k.geburtstag)+'<br>wohnhaft in '+esc(k.strasse||'')+', '+esc(k.plz||'')+' '+esc(k.ort||'')+'<br><i>– nachfolgend „Mitglied“ genannt –</i></p>'+
-  p+'wird folgender Mitgliedschaftsvertrag abgeschlossen:</p>'+
-  h+'§ 1 – Beitritt zum Verein</h3>'+p+'Der/die Antragsteller/in erklärt hiermit den Wunsch, dem '+esc(vn)+' als <b>'+esc(ARTEN[m.art])+'</b> beizutreten. Der Verein prüft den Antrag und entscheidet gemäß seiner Satzung über die Aufnahme. Mit der Annahme des Antrags durch den Vorstand wird dieser Vertrag wirksam.</p>'+
-  h+'§ 2 – Rechte und Pflichten des Mitglieds</h3><ol style="padding-left:1.3rem;line-height:1.55;margin:.3rem 0 .7rem"><li>Das Mitglied erkennt die Satzung, Ordnungen und Beschlüsse des Vereins als verbindlich an.</li><li>Das Mitglied verpflichtet sich, den jährlichen Mitgliedsbeitrag in Höhe von <b>'+eur(s.beitraege[m.art])+'</b> '+esc(s.raten)+' zu zahlen. Die Frist hierfür wird vom Vorstand mindestens 14 Tage vor Fristbeginn mitgeteilt.</li><li>Das Mitglied verpflichtet sich, die Ziele und das Brauchtum des Karnevals aktiv und in fröhlichem Geiste zu fördern.</li><li>Eine aktive Teilnahme an Vereinsveranstaltungen, Sitzungen und Umzügen wird begrüßt.</li><li>Der Verein haftet nur im Rahmen der bestehenden Vereinsversicherung.</li></ol>'+
-  h+'§ 3 – Datenschutz</h3>'+p+'(1) Der Verein erhebt, speichert und verarbeitet personenbezogene Daten des Mitglieds ausschließlich zur Erfüllung der Vereinszwecke nach der Datenschutz-Grundverordnung (DSGVO).<br>(2) Eine Weitergabe der Daten an Dritte erfolgt nur, soweit sie zur Durchführung des Vereinsbetriebs oder aufgrund gesetzlicher Pflichten erforderlich ist.<br>(3) Das Mitglied kann jederzeit Auskunft über die gespeicherten Daten verlangen.</p>'+
-  '<p style="font-size:.7rem;color:#888;text-align:right">Seite 1 von 2</p></div>'+
-  '<div class="beleg vertrag">'+h+'§ 4 – Beendigung der Mitgliedschaft</h3>'+p+'(1) Die Mitgliedschaft endet durch Austritt, Ausschluss oder Tod.<br>(2) Der Austritt ist schriftlich gegenüber dem Vorstand zu erklären und wird zum Ende des Kalenderjahres wirksam, sofern die Erklärung spätestens vier Wochen vorher eingeht.<br>(3) Bereits gezahlte Beiträge werden nicht rückerstattet.</p>'+
-  h+'§ 5 – Bestätigung der Aufnahme</h3>'+p+'Über den Antrag entscheidet der Vorstand des '+esc(vn)+'. Mit Beschluss des Vorstands gilt die Aufnahme als angenommen.</p>'+
-  h+'§ 6 – Schlussbestimmungen</h3>'+p+'Mit Unterzeichnung dieses Vertrages erkennt das Mitglied alle Bestimmungen dieses Vertrages sowie die Satzung und Beitragsordnung des Vereins an. Änderungen oder Ergänzungen bedürfen der Schriftform.</p>'+
-  '<div class="sig" style="margin-top:2.8rem"><div>Ort, Datum</div><div>Unterschrift Mitglied ('+esc(kName(k.id))+')<br><small>(bei Minderjährigen: Unterschrift eines Erziehungsberechtigten)</small></div></div>'+
-  '<p style="margin-top:2.4rem;font-weight:700">Bestätigung durch den Verein:</p>'+p+'Hiermit bestätigt der Vorstand des '+esc(vn)+' die Aufnahme des oben genannten Mitglieds.</p>'+
-  '<div class="sig" style="margin-top:2.4rem"><div>Ort, Beschlussdatum</div><div>Unterschrift Verein (Vorstand)</div></div><p style="font-size:.7rem;color:#888;text-align:right;margin-top:1.5rem">Seite 2 von 2</p></div>';
+  var fuss='<div class="beleg-footer"><span>'+esc(s.vereinsname)+'</span><span>'+esc(s.email)+'</span><span>Mitglieds-Nr. '+m.mitgliedsnr+'</span></div>';
+  var p='<p style="margin:.2rem 0 .5rem;line-height:1.5;font-size:.84rem">';
+  var h='<h3 style="font-size:.82rem;font-weight:700;margin:.7rem 0 .15rem;color:#0A4D22;border-bottom:1px solid #e8f0e8;padding-bottom:.1rem">';
+  var ol='<ol style="padding-left:1.2rem;line-height:1.5;margin:.2rem 0 .5rem;font-size:.82rem">';
+  return '<div class="beleg">'+
+  '<div class="kopf">'+
+  '<div class="kopf-links"><h2>'+esc(vn)+'</h2><small>'+esc(s.strasse)+' &middot; '+esc(s.plz)+' '+esc(s.ort)+'<br>'+esc(s.email)+'</small></div>'+
+  '<div class="kopf-rechts"><span class="beleg-typ">Mitgliedschaftsvertrag</span>'+
+  '<div class="beleg-nr">Mitglieds-Nr.: <strong>'+m.mitgliedsnr+'</strong><br>Beitritt: <strong>'+dt(m.eintritt)+'</strong></div></div></div>'+
+  '<div class="beleg-body">'+
+  '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem 2rem;margin-bottom:.8rem;padding:.6rem .8rem;background:#f8fbf8;border-radius:6px;font-size:.82rem">'+
+  '<div><strong>Verein</strong><br>'+esc(vn)+'<br>'+esc(s.strasse)+'<br>'+esc(s.plz)+' '+esc(s.ort)+'<br><em style="color:#666">– nachfolgend „Verein" –</em></div>'+
+  '<div><strong>Mitglied</strong><br>'+esc(kName(k.id))+'<br>'+(k.geburtstag?'geb. '+dt(k.geburtstag)+'<br>':'')+esc(k.strasse||'')+'<br>'+esc(k.plz||'')+' '+esc(k.ort||'')+'<br><em style="color:#666">– nachfolgend „Mitglied" –</em></div>'+
+  '</div>'+
+  h+'§ 1 – Beitritt</h3>'+p+'Das Mitglied erklärt hiermit den Beitritt zum '+esc(vn)+' als <strong>'+esc(ARTEN[m.art])+'</strong>. Der Vertrag wird mit Annahme durch den Vorstand wirksam.</p>'+
+  h+'§ 2 – Rechte und Pflichten</h3>'+ol+
+  '<li>Das Mitglied erkennt Satzung, Ordnungen und Beschlüsse des Vereins als verbindlich an.</li>'+
+  '<li>Das Mitglied verpflichtet sich zur Zahlung des Jahresbeitrags von <strong>'+eur(s.beitraege[m.art])+'</strong> '+esc(s.raten||'jährlich')+'.</li>'+
+  '<li>Das Mitglied verpflichtet sich, die Ziele und das Brauchtum des Karnevals aktiv zu fördern.</li>'+
+  '<li>Der Verein haftet nur im Rahmen der bestehenden Vereinsversicherung.</li>'+
+  '</ol>'+
+  h+'§ 3 – Datenschutz</h3>'+p+'Der Verein erhebt und verarbeitet personenbezogene Daten ausschließlich zur Erfüllung der Vereinszwecke (DSGVO). Weitergabe an Dritte nur im Rahmen des Vereinsbetriebs oder gesetzlicher Pflichten. Auskunftsrecht jederzeit möglich.</p>'+
+  h+'§ 4 – Beendigung der Mitgliedschaft</h3>'+p+'(1) Die Mitgliedschaft endet durch Austritt, Ausschluss oder Tod. (2) Austritt ist schriftlich an den Vorstand zu erklären und wird zum Jahresende wirksam (Frist: 4 Wochen). (3) Bereits gezahlte Beiträge werden nicht rückerstattet.</p>'+
+  h+'§ 5 – Schlussbestimmungen</h3>'+p+'Änderungen dieser Vereinbarung bedürfen der Schriftform. Mündliche Nebenabreden bestehen nicht. Gerichtsstand ist der Sitz des Vereins.</p>'+
+  '<div class="sig" style="margin-top:1.2rem;grid-template-columns:1fr 1fr 1fr 1fr">'+
+  '<div><div class="sig-linie"></div><small>Ort, Datum</small></div>'+
+  '<div><div class="sig-linie"></div><small>Unterschrift Mitglied</small></div>'+
+  '<div><div class="sig-linie"></div><small>'+esc(s.vorsitz||'1. Vorsitzende/r')+'</small></div>'+
+  '<div><div class="sig-linie"></div><small>'+esc(s.kassenwart||'Kassenwart/in')+'</small></div></div>'+
+  '</div>'+fuss+'</div>';
 }
+
 function vertragDrucken(id){printHTML(vertragHTML(id));schreibenLog('vertrag',id,{});toast('Vertrag erzeugt');}
 
 /* ---------- Spendenbescheinigung ---------- */
