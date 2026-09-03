@@ -196,6 +196,17 @@ footer a:hover{color:#fff}
     </div>
   </div>
 
+  <!-- WARTEN -->
+  <div id="sec-warten" style="display:none">
+    <div class="card" style="text-align:center;padding:2rem 1.5rem">
+      <div style="font-size:2.5rem;margin-bottom:.8rem">⏳</div>
+      <h2 style="margin-bottom:.6rem;color:var(--gruen-dunkel)">Zugang ausstehend</h2>
+      <p style="color:var(--grau);margin-bottom:1.2rem">Deine Registrierung war erfolgreich!<br>Der Vorstand muss deinen Zugang noch freischalten.<br><strong>Du wirst per E-Mail benachrichtigt.</strong></p>
+      <p style="font-size:.82rem;color:var(--grau)">Fragen? <a href="mailto:bskopjuek.info@gmail.com" style="color:var(--gruen)">bskopjuek.info@gmail.com</a></p>
+      <button class="btn btn-outline" style="margin-top:1rem" onclick="doLogout()">Abmelden</button>
+    </div>
+  </div>
+
   <!-- DASHBOARD -->
   <div id="sec-dashboard" style="display:none">
 
@@ -274,7 +285,7 @@ const ARTEN={'aktiv':'Aktives Mitglied','standard':'Ehrenmitglied Standard','gol
 const MONATE=['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
 
 function toast(msg,err){const t=document.getElementById('toast');t.textContent=msg;t.style.background=err?'#b91c1c':'#101812';t.style.display='block';clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',4000);}
-function show(id){['sec-login','sec-loading','sec-notfound','sec-dashboard'].forEach(s=>document.getElementById(s).style.display=s===id?'':'none');}
+function show(id){['sec-login','sec-loading','sec-notfound','sec-warten','sec-dashboard'].forEach(s=>document.getElementById(s).style.display=s===id?'':'none');}
 function showTab(t){
   ['zahlungen','news','daten'].forEach(x=>{var e=document.getElementById('tab-'+x);if(e)e.style.display=x===t?'':'none';});
   var tabs=document.querySelectorAll('#dash-tabs button');
@@ -308,7 +319,7 @@ async function doRegister(){
   show('sec-loading');
   const{error}=await sb.auth.signUp({email,password:pw});
   if(error){show('sec-login');toast(error.message,true);}
-  else{show('sec-login');switchTab('login');toast('Konto erstellt – jetzt anmelden!');}
+  else{show('sec-login');switchTab('login');toast('Konto erstellt! Der Vorstand schaltet deinen Zugang frei – danach kannst du dich anmelden.');}
 }
 async function doLogout(){
   await sb.auth.signOut();
@@ -324,6 +335,12 @@ async function doReset(){
 
 async function loadDashboard(){
   show('sec-loading');
+  // Erst prüfen ob Mitglied freigeschaltet ist
+  const{data:profil}=await sb.from('profiles').select('approved').eq('id',(await sb.auth.getUser()).data.user?.id||'').maybeSingle();
+  if(profil&&profil.approved===false){
+    show('sec-warten');
+    return;
+  }
   const[r_info,r_posten,r_news,r_termine]=await Promise.all([
     sb.rpc('get_my_member_info'),
     sb.rpc('get_my_open_payments'),
