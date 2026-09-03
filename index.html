@@ -2104,8 +2104,21 @@ async function pwReset(email){
   toast(r.ok?'Reset-E-Mail gesendet an '+email+' ✓':'Fehler beim Senden',!r.ok);
 }
 function cloudEinstTab(){
-  var e=document.getElementById('cloud-einstellungen');if(!e)return;
-  
+  var e=document.getElementById('ct2');if(!e)return;
+  e.innerHTML=
+  '<div class="card"><h3>E-Mail-Bestätigung deaktivieren</h3>'+
+  '<div class="hint warn">Damit kein Supabase-Email-Limit entsteht beim Anlegen von Konten: '+
+  '<b><a href="https://supabase.com/dashboard/project/rtpdminvaxxjcuyuqpta/auth/providers" target="_blank">'+
+  'Supabase → Auth → Providers → Email → Confirm email: AUS</a></b>. '+
+  'Dann werden keine Bestätigungsmails verschickt.</div></div>'+
+  (cloudAktiv()?
+  '<div class="card"><h3>Verbunden ✓</h3><p style="color:var(--grau);font-size:.88rem">Server: '+cloudCfg().url+'</p>'+
+  '<button class="btn btn-ghost" onclick="cloudTrennen()">Verbindung trennen</button></div>'
+  :
+  '<div class="card"><h3>Cloud-Verbindung</h3>'+
+  '<div class="field"><label>Supabase Projekt-URL</label><input id="cl_url" placeholder="https://abcdefgh.supabase.co"></div>'+
+  '<div class="field"><label>Anon Key</label><input id="cl_key" placeholder="eyJ..."></div>'+
+  '<button class="btn btn-rot" onclick="cloudVerbinden()">Verbinden</button></div>');
 }
 
 function benutzerLaden(){
