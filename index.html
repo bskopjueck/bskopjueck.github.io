@@ -114,21 +114,25 @@ td.akt{white-space:nowrap}
 /* PRINT */
 #belegPrint{display:none}
 @media print{
+  @page{margin:8mm 10mm}
   body *{visibility:hidden}
   #belegPrint,#belegPrint *{visibility:visible}
-  #belegPrint{display:block;position:absolute;left:0;top:0;width:100%;padding:0}
-  .beleg{page-break-after:always}
+  #belegPrint{display:block;position:absolute;left:0;top:0;width:100%;padding:0;margin:0}
+  .beleg{page-break-after:always;border:none!important;border-radius:0!important;margin:0!important;max-width:100%!important;box-shadow:none!important}
+  .beleg-body{padding:.5rem 1rem!important}
+  .beleg .kopf{padding:.9rem 1rem!important}
+  .print-actions{display:none!important}
 }
-.beleg{font-family:'Inter',system-ui,sans-serif;color:#1a1a1a;max-width:740px;margin:0 auto 2rem;background:#fff;border:1px solid #d0d7de;border-radius:4px;overflow:hidden}
+.beleg{font-family:'Inter',system-ui,sans-serif;color:#1a1a1a;max-width:740px;margin:0 auto .5rem;background:#fff;border:1px solid #d0d7de;border-radius:4px;overflow:hidden}
 /* Professioneller Briefkopf */
-.beleg .kopf{display:flex;justify-content:space-between;align-items:flex-start;padding:1.8rem 2rem 1.4rem;border-bottom:3px solid #0A4D22;background:linear-gradient(to right,#f8fbf8,#fff)}
+.beleg .kopf{display:flex;justify-content:space-between;align-items:flex-start;padding:.9rem 1.4rem .75rem;border-bottom:3px solid #0A4D22;background:linear-gradient(to right,#f8fbf8,#fff)}
 .beleg .kopf-links h2{font-family:'Archivo',system-ui,sans-serif;font-size:1.15rem;font-weight:800;color:#0A4D22;margin:0 0 .25rem}
 .beleg .kopf-links small{display:block;color:#555;font-size:.75rem;line-height:1.6}
 .beleg .kopf-rechts{text-align:right}
 .beleg .kopf-rechts .beleg-typ{font-family:'Archivo',system-ui,sans-serif;font-size:1rem;font-weight:800;color:#B71C1C;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:.3rem}
 .beleg .kopf-rechts .beleg-nr{font-size:.75rem;color:#444;line-height:1.7}
 .beleg .kopf-rechts .beleg-nr strong{color:#111;font-size:.85rem}
-.beleg .beleg-body{padding:1.4rem 2rem}
+.beleg .beleg-body{padding:.9rem 1.4rem}
 /* Adressfeld */
 .beleg .an{margin-bottom:1.2rem}
 .beleg .an .an-label{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:#888;margin-bottom:.2rem}
@@ -147,7 +151,7 @@ td.akt{white-space:nowrap}
 .beleg .zahl-box{background:#fff8e1;border:1px solid #f9a825;border-radius:6px;padding:.9rem 1.1rem;margin:1rem 0;font-size:.82rem;line-height:1.6}
 .beleg .zahl-box strong{color:#e65100;display:block;margin-bottom:.3rem;font-size:.85rem}
 /* Unterschriftenbereich */
-.beleg .sig{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem 2rem;margin-top:2rem;padding-top:1rem;border-top:1px solid #e0e0e0}
+.beleg .sig{display:grid;grid-template-columns:1fr 1fr;gap:.6rem 1rem;margin-top:.8rem;padding-top:.5rem;border-top:1px solid #e0e0e0}
 .beleg .sig-4{grid-template-columns:1fr 1fr 1fr 1fr}
 .beleg .sig div{text-align:center}
 .beleg .sig .sig-linie{border-bottom:1px solid #666;height:1.8rem;margin-bottom:.3rem}
@@ -175,17 +179,17 @@ th.sortable{cursor:pointer;user-select:none}th.sortable:hover{color:var(--gruen-
 .bk-l{flex:1}.bk-abs{font-size:.63rem;color:#777;border-bottom:1px solid #ccc;padding-bottom:.15rem;margin:.8rem 0 .5rem}
 .bk-an{min-height:72px;line-height:1.45;font-size:.88rem}
 .bk-r{width:175px;font-size:.7rem;color:#444;line-height:1.45;border-left:2px solid #0A4D22;padding-left:.6rem;flex-shrink:0}
-.bk-datum{text-align:right;margin:.3rem 0 .8rem;font-size:.84rem}
-.bk-titel{font-weight:800;font-size:1rem;margin-bottom:.6rem;line-height:1.3;padding:.4rem 0;border-bottom:1px solid #e8f0e8}.bk-titel small{display:block;font-weight:600;font-size:.78rem;color:#444;margin-top:.15rem}
+.bk-datum{text-align:right;margin:.2rem 0 .5rem;font-size:.82rem}
+.bk-titel{font-weight:800;font-size:.95rem;margin-bottom:.4rem;line-height:1.3;padding:.25rem 0;border-bottom:1px solid #e8f0e8}.bk-titel small{display:block;font-weight:600;font-size:.78rem;color:#444;margin-top:.15rem}
 .bk-mg{font-weight:700;margin-bottom:.6rem;line-height:1.4;font-size:.88rem}
-.bk-body{line-height:1.6;font-size:.86rem}
-.bk-body p{margin:.25rem 0 .5rem}
-.bk-body ul,bk-body ol{margin:.2rem 0 .4rem;padding-left:1.2rem;line-height:1.5;font-size:.84rem}
-.bk-sig{margin-top:1.4rem;gap:.8rem}.bk-sig div{font-size:.75rem;text-align:center}
+.bk-body{line-height:1.45;font-size:.83rem}
+.bk-body p{margin:.05rem 0 .22rem}
+.bk-body ul,.bk-body ol{margin:.05rem 0 .2rem;padding-left:1rem;line-height:1.4;font-size:.81rem}
+.bk-sig{margin-top:.8rem;gap:.5rem}.bk-sig div{font-size:.75rem;text-align:center}
 .beleg table.f{margin:.2rem 0 .6rem}.beleg table.f td{border:none;padding:.28rem .4rem;vertical-align:bottom}
 .sline{display:inline-block;min-width:280px;border-bottom:1px solid #333;padding:0 .3rem .1rem;font-weight:600}
 .vertrag h3{color:var(--gruen-dunkel)}
-@media print{.beleg{border:none;border-radius:0;margin:0;max-width:none;padding:1.5cm 1.8cm}}
+@media print{.beleg{border:none!important;border-radius:0!important;margin:0!important;max-width:100%!important}}
 </style>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#153D1F">
@@ -628,7 +632,7 @@ function belegHTML(ids,titel){
 function belegDrucken(ids,titel){printHTML(belegHTML(ids,titel));}
 function printHTML(html){
   var p=document.getElementById('belegPrint');p.innerHTML=html;
-  openModal('<h2>Druckansicht</h2><div class="print-actions"><button class="btn btn-rot" onclick="window.print()">Drucken / als PDF speichern</button><button class="btn btn-hell" onclick="closeModal()">Schließen</button></div><div style="background:#EEE;padding:1rem;border-radius:8px">'+html+'</div>',true);
+  openModal('<h2>Druckansicht</h2><div class="print-actions"><button class="btn btn-rot" onclick="window.print()">Drucken / als PDF speichern</button><button class="btn btn-hell" onclick="closeModal()">Schließen</button></div><div style="background:#EEE;padding:.3rem .5rem;border-radius:8px;max-height:70vh;overflow-y:auto">'+html+'</div>',true);
 }
 
 /* ============================================================
