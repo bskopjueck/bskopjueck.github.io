@@ -1802,7 +1802,7 @@ function cloudRefresh(){
 }
 function cloudProfilLaden(){
   if(!CL.session||!CL.session.user)return Promise.resolve(null);
-  return cloudFetch('/rest/v1/profiles?id=eq.'+CL.session.user.id+'&select=*').then(function(r){return r.ok?r.json():[];}).then(function(rows){CL.profil=rows[0]||null;return CL.profil;}).catch(function(){return null;});
+  return cloudFetch('/rest/v1/profiles?id=eq.'+CL.session.user.id+'&select=*').then(function(r){return r.ok?r.json():[];}).then(function(rows){CL.profil=rows[0]||null;if(CL.profil)badgeUpdate();return CL.profil;}).catch(function(){return null;});
 }
 function meinName(){return (CL.profil&&(CL.profil.name||CL.profil.email))||(CL.session&&CL.session.user&&CL.session.user.email)||'Unbekannt';}
 function cloudPullRow(){
@@ -1956,12 +1956,32 @@ function vCloud(){
   ['Vorstand & CRM','Mitglieder freischalten','Verbindung'].map(function(t,i){return '<button '+(i===0?'class="on"':'')+' onclick="ctTab('+i+')">'+t+'</button>';}).join('')+
   '</div>'+
   '<div id="ct0"></div><div id="ct1" style="display:none"></div><div id="ct2" style="display:none"></div>');
-  if(cloudAngemeldet()){cloudVorstand();cloudPortal();}else{
+  if(cloudAngemeldet()){cloudVorstand();cloudPortal();badgeUpdate();}else{
     document.getElementById('ct0').innerHTML='<div class="card"><p>Bitte zuerst Verbindung herstellen (Tab "Verbindung").</p></div>';
     document.getElementById('ct1').innerHTML='<div class="card"><p>Bitte zuerst Verbindung herstellen.</p></div>';
   }
   cloudEinstTab();
 }
+async function badgeUpdate(){
+  if(!cloudAngemeldet())return;
+  try{
+    var r=await cloudFetch('/rest/v1/profiles?crm_zugang=eq.false&approved=eq.false&select=id',{},true);
+    var rows=await r.json();
+    var n=Array.isArray(rows)?rows.length:0;
+    document.querySelectorAll('.nav[data-view="cloud"] .badge-count').forEach(function(e){e.remove();});
+    if(n>0){
+      var a=document.querySelector('.nav[data-view="cloud"]');
+      if(a){
+        var span=document.createElement('span');
+        span.className='badge-count';
+        span.style.cssText='background:var(--rot);color:#fff;border-radius:20px;font-size:.65rem;font-weight:800;padding:.08rem .38rem;margin-left:.4rem;vertical-align:middle';
+        span.textContent=n;
+        a.appendChild(span);
+      }
+    }
+  }catch(e){}
+}
+
 function ctTab(n){
   for(var i=0;i<3;i++){var e=document.getElementById('ct'+i);if(e)e.style.display=i===n?'':'none';}
   document.querySelectorAll('#ct button').forEach(function(b,i){b.classList.toggle('on',i===n);});
@@ -2067,12 +2087,13 @@ async function vNeuAnlegen(){
 }
 async function pFrei(id){
   var r=await cloudFetch('/rest/v1/profiles?id=eq.'+id,{method:'PATCH',body:JSON.stringify({approved:true}),headers:{'Prefer':'return=minimal'}},true);
-  if(r.ok){toast('Freigeschalten ✓');cloudPortal();}else toast('Fehler',true);
+  if(r.ok){toast('Freigeschalten ✓');cloudPortal();badgeUpdate();}else toast('Fehler',true);
 }
 async function pAbleh(id,email){
-  if(!confirm('Zugang für '+email+' wirklich entziehen?'))return;
-  await cloudFetch('/rest/v1/profiles?id=eq.'+id,{method:'PATCH',body:JSON.stringify({approved:false}),headers:{'Prefer':'return=minimal'}},true);
-  toast('Zugang entzogen');cloudPortal();
+  if(!confirm('Ablehnen: '+email+'?'))return;
+  var r=await cloudFetch('/rest/v1/profiles?id=eq.'+id,{method:'DELETE',headers:{'Prefer':'return=minimal'}},true);
+  if(r.ok){toast('Entfernt ✓');cloudPortal();badgeUpdate();}
+  else toast('Fehler beim Entfernen',true);
 }
 async function pwReset(email){
   if(!confirm('Passwort-Reset-E-Mail an '+email+' senden?'))return;
