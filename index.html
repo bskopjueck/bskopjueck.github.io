@@ -1950,28 +1950,143 @@ function vorstandInfo(){
 }
 
 function vCloud(){
-  if(CL.modus==='claude'){C(claudeCloudHTML());return;}
-  var html='';
-  if(!cloudAktiv()){
-    html+='<div class="hint">Aktuell läuft die Verwaltung <b>lokal in diesem Browser</b>. Für den Team-Betrieb (4 Vorstände, gemeinsame Daten, Login) verbindest du sie mit einem kostenlosen <b>Supabase</b>-Projekt – die Anleitung mit fertigem Einrichtungs-Skript liegt im Download-Paket (README.md + supabase-setup.sql). Kurz: Projekt anlegen, SQL-Skript ausführen, unten URL & Key eintragen.</div>'+
-    '<div class="card" style="max-width:640px"><h3>Cloud einrichten</h3>'+
-    '<div class="field"><label>Supabase Projekt-URL</label><input id="cl_url" placeholder="https://abcdefgh.supabase.co"></div>'+
-    '<div class="field"><label>Anon/Public Key (API Key „anon“)</label><textarea id="cl_key" style="min-height:70px" placeholder="eyJhbGciOi…"></textarea></div>'+
-    '<div class="mfoot" style="justify-content:flex-start"><button class="btn btn-rot" onclick="(function(){var u=val(\'cl_url\').trim(),k=val(\'cl_key\').trim();if(!/^https:\\/\\//.test(u)||!k){toast(\'URL und Key prüfen\',true);return;}localStorage.setItem(CK,JSON.stringify({url:u,anonKey:k}));location.reload();})()">Verbinden & neu laden</button></div>'+
-    '<p style="font-size:.78rem;color:var(--grau)">Hinweis: In der Claude-Vorschau sind externe Server gesperrt – die Cloud funktioniert auf der veröffentlichten Seite (GitHub Pages / Render). Der Anon-Key ist als öffentlicher Schlüssel gedacht; der Zugriff wird serverseitig über Login + Freischaltung abgesichert.</p></div>';
-    C(html);return;
+  current='cloud';brand();
+  var tabs=['vorstand','portal','einstellungen'];
+  C('<div class="tabs" id="ct">'+
+  ['Vorstand & CRM','Mitglieder freischalten','Verbindung'].map(function(t,i){return '<button '+(i===0?'class="on"':'')+' onclick="ctTab('+i+')">'+t+'</button>';}).join('')+
+  '</div>'+
+  '<div id="ct0"></div><div id="ct1" style="display:none"></div><div id="ct2" style="display:none"></div>');
+  if(cloudAngemeldet()){cloudVorstand();cloudPortal();}else{
+    document.getElementById('ct0').innerHTML='<div class="card"><p>Bitte zuerst Verbindung herstellen (Tab "Verbindung").</p></div>';
+    document.getElementById('ct1').innerHTML='<div class="card"><p>Bitte zuerst Verbindung herstellen.</p></div>';
   }
-  var p=CL.profil;
-  html+='<div class="grid g2"><div><div class="card" style="margin-bottom:1rem"><h3>Status</h3><dl>'+
-  '<dt>Server</dt><dd>'+esc(cloudCfg().url)+'</dd>'+
-  '<dt>Angemeldet als</dt><dd>'+(cloudAngemeldet()?esc(meinName())+' ('+esc((p&&p.role)==='admin'?'Administrator':'Vorstand')+')':'<span style="color:var(--rot)">nicht angemeldet'+(CL.lokal?' – lokaler Modus':'')+'</span>')+'</dd>'+
-  '<dt>Datenstand</dt><dd>Version '+CL.version+(CL.letzterSync?' · synchronisiert '+CL.letzterSync.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}):'')+(CL.dirty?' · <b style="color:var(--rot)">ungespeicherte Änderungen</b>':'')+'</dd></dl>'+
-  '<div class="mfoot" style="justify-content:flex-start">'+(cloudAngemeldet()?'<button class="btn btn-gruen btn-sm" onclick="CL.dirty=true;cloudPush()">Jetzt speichern</button><button class="btn btn-hell btn-sm" onclick="cloudPullRow().then(function(r){if(r){stateUebernehmen(r);go(\'cloud\');toast(\'Server-Stand geladen\');}})">Vom Server laden</button><button class="btn btn-hell btn-sm" onclick="cloudLogout()">Abmelden</button>':'<button class="btn btn-rot btn-sm" onclick="CL.lokal=false;loginScreen()">Anmelden</button>')+'<button class="btn btn-ghost btn-sm" onclick="cloudTrennen()">Verbindung entfernen</button></div></div>'+
-  '<div class="card"><h3>So funktioniert der Team-Betrieb</h3><p style="font-size:.85rem;color:var(--grau);line-height:1.6">Alle Änderungen werden automatisch (ca. 1 Sek. nach dem Speichern) auf den Vereinsserver geschrieben und alle 25 Sek. von dort aktualisiert. Ändern zwei Personen gleichzeitig, fragt die App, welcher Stand gelten soll. Neue Vorstände registrieren sich über die Anmeldemaske – arbeiten können sie erst nach Freischaltung durch den Admin.</p></div></div>'+
-  '<div><div class="card"><h3>Benutzerverwaltung</h3>'+((p&&p.role==='admin')?'<div id="cloudUsers"><p style="color:var(--grau);font-size:.85rem">Lade Benutzer…</p></div>':'<p style="font-size:.85rem;color:var(--grau)">Nur der Administrator kann Benutzer freischalten und Rollen vergeben.'+(p?' Dein Konto: '+esc(p.email)+' · Rolle: '+esc(p.role)+'.':'')+'</p>')+'</div></div></div>';
-  C(html);
-  if(p&&p.role==='admin'&&cloudAngemeldet())benutzerLaden();
+  cloudEinstTab();
 }
+function ctTab(n){
+  for(var i=0;i<3;i++){var e=document.getElementById('ct'+i);if(e)e.style.display=i===n?'':'none';}
+  document.querySelectorAll('#ct button').forEach(function(b,i){b.classList.toggle('on',i===n);});
+  if(n===0&&cloudAngemeldet())cloudVorstand();
+  if(n===1&&cloudAngemeldet())cloudPortal();
+  if(n===2)cloudEinstTab();
+}
+async function cloudVorstand(){
+  var e=document.getElementById('ct0');if(!e)return;
+  e.innerHTML='<div class="card" style="text-align:center;padding:1.5rem"><div class="loader"></div></div>';
+  var r=await cloudFetch('/rest/v1/profiles?crm_zugang=eq.true&select=*&order=created_at',{},true);
+  var rows=await r.json();
+  if(!Array.isArray(rows)){e.innerHTML='<div class="card"><p style="color:var(--rot)">Fehler: SQL crm-zugang.sql ausführen</p></div>';return;}
+  e.innerHTML='<div class="card"><h3>Vorstand-Konten (CRM-Zugang)</h3>'+
+  '<div class="hint">Nur diese Personen können sich ins Verwaltungssystem einloggen.</div>'+
+  '<div class="tbl-wrap"><table><tr><th>E-Mail</th><th>Name</th><th>Rolle</th><th>Frei</th><th></th></tr>'+
+  rows.map(function(u){
+    var mich=CL.session&&CL.session.user&&u.id===CL.session.user.id;
+    return '<tr data-uid="'+u.id+'">'+
+    '<td><small>'+esc(u.email||'')+'</small>'+(mich?' <span class="tag tag-blau">du</span>':'')+'</td>'+
+    '<td><input class="vn" value="'+esc(u.name||'')+'" style="width:110px;padding:.3rem;border:1.5px solid var(--linie);border-radius:6px"></td>'+
+    '<td><select class="vr"><option value="vorstand"'+(u.role!=='admin'?' selected':'')+'>Vorstand</option><option value="admin"'+(u.role==='admin'?' selected':'')+'>Admin</option></select></td>'+
+    '<td style="text-align:center"><input type="checkbox" class="vf" '+(u.approved?'checked':'')+'></td>'+
+    '<td class="akt">'+
+    '<button class="btn btn-rot btn-sm" data-email="'+esc(u.email||'')+'" onclick="vSave(this)">Speichern</button> '+
+    '<button class="btn btn-ghost btn-sm" data-email="'+esc(u.email||'')+'" onclick="pwReset(this.dataset.email)">PW-Reset</button>'+
+    '</td></tr>';
+  }).join('')+
+  '</table></div>'+
+  '<div style="margin:.7rem 0"><button class="btn btn-rot btn-sm" onclick="vNeu()">+ Vorstand anlegen</button></div>'+
+  '<small style="color:var(--grau)">PW-Reset sendet eine Reset-E-Mail an den Nutzer.</small></div>';
+}
+async function cloudPortal(){
+  var e=document.getElementById('ct1');if(!e)return;
+  e.innerHTML='<div class="card" style="text-align:center;padding:1.5rem"><div class="loader"></div></div>';
+  var r=await cloudFetch('/rest/v1/profiles?crm_zugang=eq.false&select=*&order=created_at',{},true);
+  var rows=await r.json();
+  if(!Array.isArray(rows)){e.innerHTML='<div class="card"><p style="color:var(--rot)">Fehler beim Laden.</p></div>';return;}
+  var offen=rows.filter(function(u){return !u.approved;});
+  var frei=rows.filter(function(u){return u.approved;});
+  var html='<div class="card"><h3>Mitglieder-Portal: Zugang freischalten</h3>'+
+  '<div class="hint">Mitglieder die sich im Portal registriert haben. Freischalten = Zugang zu Zahlungen, News und Terminen.</div>';
+  if(offen.length){
+    html+='<h4 style="margin:.8rem 0 .5rem;color:var(--rot)">'+offen.length+' Anfragen ausstehend:</h4>'+
+    '<div class="tbl-wrap"><table><tr><th>E-Mail</th><th>Registriert</th><th></th></tr>'+
+    offen.map(function(u){return '<tr>'+
+      '<td>'+esc(u.email||'')+'</td>'+
+      '<td><small>'+dt((u.created_at||'').slice(0,10))+'</small></td>'+
+      '<td class="akt">'+
+      '<button class="btn btn-rot btn-sm" data-uid="'+u.id+'" onclick="pFrei(this.dataset.uid)">Freischalten</button> '+
+      '<button class="btn btn-ghost btn-sm" data-uid="'+u.id+'" data-email="'+esc(u.email||'')+'" onclick="pAbleh(this.dataset.uid,this.dataset.email)">Ablehnen</button>'+
+      '</td></tr>';}).join('')+'</table></div>';
+  } else {
+    html+='<div class="hint" style="background:var(--tint)">Keine ausstehenden Anfragen.</div>';
+  }
+  if(frei.length){
+    html+='<h4 style="margin:.8rem 0 .5rem">'+frei.length+' freigeschaltet:</h4>'+
+    '<div class="tbl-wrap"><table><tr><th>E-Mail</th><th></th></tr>'+
+    frei.map(function(u){return '<tr>'+
+      '<td>'+esc(u.email||'')+'</td>'+
+      '<td class="akt">'+
+      '<button class="btn btn-ghost btn-sm" data-email="'+esc(u.email||'')+'" onclick="pwReset(this.dataset.email)">PW-Reset</button> '+
+      '<button class="btn btn-ghost btn-sm" data-uid="'+u.id+'" data-email="'+esc(u.email||'')+'" onclick="pAbleh(this.dataset.uid,this.dataset.email)">Zugang entziehen</button>'+
+      '</td></tr>';}).join('')+'</table></div>';
+  }
+  html+='</div>';
+  e.innerHTML=html;
+}
+async function vSave(btn){
+  var tr=btn.closest('tr');var id=tr.dataset.uid;
+  var body={name:tr.querySelector('.vn').value,role:tr.querySelector('.vr').value,approved:tr.querySelector('.vf').checked,crm_zugang:true};
+  var r=await cloudFetch('/rest/v1/profiles?id=eq.'+id,{method:'PATCH',body:JSON.stringify(body),headers:{'Prefer':'return=minimal'}},true);
+  if(r.ok){toast('Gespeichert ✓');cloudVorstand();}else toast('Fehler',true);
+}
+
+async function vSave(id){
+  var body={name:val('vn_'+id),role:val('vr_'+id),approved:document.getElementById('vf_'+id).checked,crm_zugang:true};
+  var r=await cloudFetch('/rest/v1/profiles?id=eq.'+id,{method:'PATCH',body:JSON.stringify(body),headers:{'Prefer':'return=minimal'}},true);
+  if(r.ok){toast('Gespeichert ✓');cloudVorstand();}else toast('Fehler',true);
+}
+function vNeu(){
+  openModal('<h2>Vorstand-Konto anlegen</h2>'+
+  '<div class="hint">Lege ein Konto für ein Vorstandsmitglied an. Du vergibst direkt E-Mail und Passwort.</div>'+
+  '<div class="field"><label>E-Mail</label><input id="vneu_e" type="email" placeholder="name@email.de"></div>'+
+  '<div class="field"><label>Passwort (mind. 6 Zeichen)</label><input id="vneu_p" type="password" placeholder="Temporäres Passwort"></div>'+
+  '<div class="field"><label>Name (optional)</label><input id="vneu_n" placeholder="Max Mustermann"></div>'+
+  '<div class="mfoot"><button class="btn btn-hell" onclick="closeModal()">Abbrechen</button><button class="btn btn-rot" onclick="vNeuAnlegen()">Anlegen</button></div>');
+}
+async function vNeuAnlegen(){
+  var email=val('vneu_e').trim();var pw=val('vneu_p');var name=val('vneu_n').trim();
+  if(!email){toast('E-Mail fehlt',true);return;}
+  if(pw.length<6){toast('Passwort mind. 6 Zeichen',true);return;}
+  var c=cloudCfg();
+  var r=await fetch(c.url+'/auth/v1/signup',{method:'POST',
+    headers:{'apikey':c.anonKey,'Content-Type':'application/json'},
+    body:JSON.stringify({email:email,password:pw})});
+  var data=await r.json();
+  if(!r.ok||!data.user){toast('Fehler: '+(data.msg||data.error_description||data.message||'unbekannt'),true);return;}
+  await cloudFetch('/rest/v1/profiles?id=eq.'+data.user.id,{method:'PATCH',
+    body:JSON.stringify({crm_zugang:true,approved:true,role:'vorstand',name:name||null}),
+    headers:{'Prefer':'return=minimal'}},true);
+  closeModal();toast('Konto angelegt: '+email+' ✓');cloudVorstand();
+}
+async function pFrei(id){
+  var r=await cloudFetch('/rest/v1/profiles?id=eq.'+id,{method:'PATCH',body:JSON.stringify({approved:true}),headers:{'Prefer':'return=minimal'}},true);
+  if(r.ok){toast('Freigeschalten ✓');cloudPortal();}else toast('Fehler',true);
+}
+async function pAbleh(id,email){
+  if(!confirm('Zugang für '+email+' wirklich entziehen?'))return;
+  await cloudFetch('/rest/v1/profiles?id=eq.'+id,{method:'PATCH',body:JSON.stringify({approved:false}),headers:{'Prefer':'return=minimal'}},true);
+  toast('Zugang entzogen');cloudPortal();
+}
+async function pwReset(email){
+  if(!confirm('Passwort-Reset-E-Mail an '+email+' senden?'))return;
+  var c=cloudCfg();
+  var r=await fetch(c.url+'/auth/v1/recover',{method:'POST',
+    headers:{'apikey':c.anonKey,'Content-Type':'application/json'},
+    body:JSON.stringify({email:email})});
+  toast(r.ok?'Reset-E-Mail gesendet an '+email+' ✓':'Fehler beim Senden',!r.ok);
+}
+function cloudEinstTab(){
+  var e=document.getElementById('cloud-einstellungen');if(!e)return;
+  
+}
+
 function benutzerLaden(){
   cloudFetch('/rest/v1/profiles?crm_zugang=eq.true&select=*&order=created_at').then(function(r){return r.ok?r.json():null;}).then(function(rows){
     var e=document.getElementById('cloudUsers');if(!e)return;
