@@ -2003,7 +2003,7 @@ async function cloudVorstand(){
     return '<tr data-uid="'+u.id+'">'+
     '<td><small>'+esc(u.email||'')+'</small>'+(mich?' <span class="tag tag-blau">du</span>':'')+'</td>'+
     '<td><input class="vn" value="'+esc(u.name||'')+'" style="width:110px;padding:.3rem;border:1.5px solid var(--linie);border-radius:6px"></td>'+
-    '<td><select class="vr"><option value="vorstand"'+(u.role!=='admin'?' selected':'')+'>Vorstand</option><option value="admin"'+(u.role==='admin'?' selected':'')+'>Admin</option></select></td>'+
+    '<td><select class="vr">'+(u.role==='admin'?'<option value="vorstand">Mitarbeiter (Vorstand/Kassierer/Prüfer)</option><option value="admin" selected>Admin (Benutzerverwaltung)</option>':'<option value="vorstand" selected>Mitarbeiter (Vorstand/Kassierer/Prüfer)</option><option value="admin">Admin (Benutzerverwaltung)</option>')+'</select></td>'+
     '<td style="text-align:center"><input type="checkbox" class="vf" '+(u.approved?'checked':'')+'></td>'+
     '<td class="akt">'+
     '<button class="btn btn-rot btn-sm" data-email="'+esc(u.email||'')+'" onclick="vSave(this)">Speichern</button> '+
