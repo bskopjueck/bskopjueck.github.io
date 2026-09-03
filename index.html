@@ -183,6 +183,7 @@ th.sortable{cursor:pointer;user-select:none}th.sortable:hover{color:var(--gruen-
       <a class="nav" data-view="aufnahme"><svg class="ic" viewBox="0 0 24 24"><circle cx="10" cy="8" r="3.5"/><path d="M3.5 20c.6-3.6 3.2-5.5 6.5-5.5 1.3 0 2.5.3 3.5.9"/><path d="M18 14v6M15 17h6"/></svg>Mitgliedschaft erfassen</a>
       <a class="nav" data-view="mitglieder"><svg class="ic" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 19.5c.6-3.4 3-5.2 6-5.2s5.4 1.8 6 5.2"/><circle cx="17" cy="9" r="2.6"/><path d="M15.5 13.6c2.8.1 5 1.8 5.6 4.9"/></svg>Mitgliederliste</a>
       <a class="nav" data-view="kalender"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Kalender & Termine</a>
+      <a class="nav" data-view="sponsoren"><svg class="ic" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Sponsoren</a>
       <a class="nav" data-view="portal_news"><svg class="ic" viewBox="0 0 24 24"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8M15 18h-5M10 6h8v4h-8z"/></svg>Portal-News</a>
       <a class="nav" data-view="schriftverkehr"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>Schriftverkehr</a>
       <a class="nav" data-view="kontakte"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="11" r="2.3"/><path d="M5.5 17c.5-2 1.9-3 3.5-3s3 1 3.5 3M14 9h4M14 13h4"/></svg>Kontakte & Partner</a>
@@ -327,6 +328,7 @@ var VIEWS={
   aufnahme:['Mitgliedschaft erfassen','Neues Mitglied aufnehmen – mit automatischer Buchung'],
   mitglieder:['Mitgliederliste','Alle Mitgliedschaften'],
   kontakte:['Kontakte & Partner','Personen, Firmen, Sponsoren – mit Rollen'],
+  sponsoren:['Sponsoren','Sponsoren auf bskopjueck.de verwalten – erscheinen automatisch auf der Website'],
   portal_news:['Portal-News','News für den Mitgliederbereich auf bskopjueck.de'],
   schriftverkehr:['Schriftverkehr','Alle Anschreiben, Mahnungen, Mandate & Verträge'],
   'import':['Import aus Excel / CSV','Buchungen, Personen & Mitglieder aus dem Altsystem übernehmen'],
@@ -349,7 +351,7 @@ function go(v,arg){
   document.getElementById('viewSub').textContent=VIEWS[v][1];
   document.getElementById('side').classList.remove('open');
   window.scrollTo(0,0);
-  ({dashboard:vDashboard,aufnahme:vAufnahme,mitglieder:vMitglieder,kontakte:vKontakte,schriftverkehr:vSchriftverkehr,'import':vImport,lastschrift:vLastschrift,kalender:vKalender,buchen:vBuchen,journal:vJournal,offen:vOffen,konten:vKonten,belege:vBelege,auswertung:vAuswertung,cloud:vCloud,einstellungen:vEinstellungen,portal_news:vPortalNews})[v](arg);
+  ({dashboard:vDashboard,aufnahme:vAufnahme,mitglieder:vMitglieder,kontakte:vKontakte,schriftverkehr:vSchriftverkehr,'import':vImport,lastschrift:vLastschrift,kalender:vKalender,buchen:vBuchen,journal:vJournal,offen:vOffen,konten:vKonten,belege:vBelege,auswertung:vAuswertung,cloud:vCloud,einstellungen:vEinstellungen,portal_news:vPortalNews,sponsoren:vSponsoren})[v](arg);
 }
 document.querySelectorAll('.side a.nav').forEach(function(a){a.addEventListener('click',function(){go(a.dataset.view);});});
 function C(html){document.getElementById('content').innerHTML=html;}
@@ -726,6 +728,66 @@ async function newsLoeschen(id){
     var r=await cloudFetch('/rest/v1/portal_news?id=eq.'+id,{method:'DELETE'},true);
     if(!r.ok){toast('Fehler beim Löschen',true);return;}
     toast('News gelöscht');closeModal();vPortalNews();
+  }catch(e){toast('Fehler: '+e.message,true);}
+}
+
+async function vSponsoren(){
+  current='sponsoren';brand();
+  C('<div class="toolbar"><button class="btn btn-rot" onclick="sponsorForm()">+ Sponsor hinzufügen</button>'+
+  '<span class="hint" style="margin:0;display:inline-block;vertical-align:middle;max-width:400px">Sponsoren erscheinen automatisch auf bskopjueck.de im Sponsorenbereich.</span></div>'+
+  '<div id="spo-liste"><div class="card" style="text-align:center;padding:2rem"><div class="loader"></div></div></div>');
+  if(!cloudAngemeldet()){document.getElementById('spo-liste').innerHTML='<div class="card"><p>Bitte zuerst anmelden (Team & Cloud).</p></div>';return;}
+  try{
+    var r=await cloudFetch('/rest/v1/sponsoren?select=*&order=reihenfolge.asc',{},true);
+    var sl=await r.json();
+    if(!Array.isArray(sl)){document.getElementById('spo-liste').innerHTML='<div class="card"><p style="color:var(--rot)">Fehler: SQL noch ausführen (sponsoren-mitglieder.sql)</p></div>';return;}
+    document.getElementById('spo-liste').innerHTML=sl.length?
+      '<div class="tbl-wrap"><table><tr><th>#</th><th>Logo</th><th>Name</th><th>Website</th><th>Aktiv</th><th></th></tr>'+
+      sl.map(function(s){return '<tr>'+
+        '<td style="color:var(--grau);font-size:.8rem">'+s.reihenfolge+'</td>'+
+        '<td>'+(s.logo_url?'<img src="'+esc(s.logo_url)+'" style="height:36px;max-width:80px;object-fit:contain">':'–')+'</td>'+
+        '<td><b>'+esc(s.name)+'</b>'+(s.beschreibung?'<br><small style="color:var(--grau)">'+esc(s.beschreibung.slice(0,50))+'</small>':'')+'</td>'+
+        '<td><a href="'+esc(s.website||'#')+'" target="_blank" style="font-size:.82rem">'+esc(s.website||'–')+'</a></td>'+
+        '<td><span class="tag '+(s.aktiv?'tag-gruen':'tag-grau')+'">'+( s.aktiv?'Aktiv':'Inaktiv')+'</span></td>'+
+        '<td class="akt"><button class="btn btn-hell btn-sm" onclick="sponsorForm(\''+s.id+'\')">Bearb.</button> '+
+        '<button class="btn btn-ghost btn-sm" onclick="sponsorLoeschen(\''+s.id+'\')" style="color:var(--rot)">Löschen</button></td></tr>';}).join('')+'</table></div>'
+      :'<div class="card"><div class="empty">Noch keine Sponsoren. Klick auf „+ Sponsor hinzufügen".</div></div>';
+  }catch(e){document.getElementById('spo-liste').innerHTML='<div class="card"><p style="color:var(--rot)">Fehler: '+esc(e.message)+'</p></div>';}
+}
+async function sponsorForm(id){
+  var s={};
+  if(id){
+    try{var r=await cloudFetch('/rest/v1/sponsoren?id=eq.'+id+'&limit=1',{},true);var arr=await r.json();s=arr[0]||{};}catch(e){}
+  }
+  openModal('<h2>'+(id?'Sponsor bearbeiten':'Neuer Sponsor')+'</h2>'+
+  '<div class="frow"><div class="field"><label>Reihenfolge (kleinere Zahl = weiter vorne)</label><input id="sf_sort" type="number" value="'+(s.reihenfolge||100)+'" style="width:100px"></div>'+
+  '<div class="field"><label>Aktiv</label><select id="sf_aktiv"><option value="true"'+(s.aktiv!==false?' selected':'')+'>Ja – sichtbar auf Website</option><option value="false"'+(s.aktiv===false?' selected':'')+'>Nein – ausgeblendet</option></select></div></div>'+
+  '<div class="field"><label>Name</label><input id="sf_name" value="'+esc(s.name||'')+'"></div>'+
+  '<div class="field"><label>Website-URL</label><input id="sf_web" placeholder="https://www.example.de" value="'+esc(s.website||'')+'"></div>'+
+  '<div class="field"><label>Logo-URL</label><input id="sf_logo" placeholder="https://... oder leer" value="'+esc(s.logo_url||'')+'" oninput="document.getElementById(\'sf_logo_prev\').innerHTML=this.value?\'<img src=\"\'+this.value+\'\" style=\"max-height:80px;max-width:200px;margin-top:.4rem;border:1px solid var(--linie);border-radius:8px;padding:.3rem\">\':\'\'">'+
+  '<div id="sf_logo_prev">'+(s.logo_url?'<img src="'+esc(s.logo_url)+'" style="max-height:80px;max-width:200px;margin-top:.4rem;border:1px solid var(--linie);border-radius:8px;padding:.3rem">':'')+'</div>'+
+  '<small style="color:var(--grau)">Tipp: Logo-URL direkt von der Website des Sponsors kopieren oder bei <a href="https://postimages.org" target="_blank">postimages.org</a> hochladen</small></div>'+
+  '<div class="field"><label>Beschreibung (optional)</label><input id="sf_besch" placeholder="z.B. Unser Hauptsponsor seit 2020" value="'+esc(s.beschreibung||'')+'"></div>'+
+  '<div class="mfoot">'+(id?'<button class="btn btn-ghost" onclick="sponsorLoeschen(\''+id+'\')" style="color:var(--rot)">Löschen</button>':'')+'<button class="btn btn-hell" onclick="closeModal()">Abbrechen</button><button class="btn btn-rot" onclick="sponsorSpeichern(\''+(id||'')+'\')">Speichern</button></div>');
+}
+async function sponsorSpeichern(id){
+  var o={name:val('sf_name'),website:val('sf_web')||null,logo_url:val('sf_logo')||null,beschreibung:val('sf_besch')||null,reihenfolge:parseInt(val('sf_sort'),10)||100,aktiv:val('sf_aktiv')!=='false'};
+  if(!o.name){toast('Name fehlt',true);return;}
+  try{
+    var opt={body:JSON.stringify(o),headers:{'Prefer':'return=minimal'}};
+    var r;
+    if(id){opt.method='PATCH';r=await cloudFetch('/rest/v1/sponsoren?id=eq.'+id,opt,true);}
+    else{opt.method='POST';r=await cloudFetch('/rest/v1/sponsoren',opt,true);}
+    if(!r.ok){var t=await r.text();try{var j=JSON.parse(t);t=j.message||j.details||t;}catch(e){}toast('Fehler: '+t.slice(0,100),true);return;}
+    closeModal();toast(id?'Sponsor aktualisiert ✓':'Sponsor gespeichert ✓');vSponsoren();
+  }catch(e){toast('Fehler: '+e.message,true);}
+}
+async function sponsorLoeschen(id){
+  if(!confirm('Sponsor wirklich löschen?'))return;
+  try{
+    var r=await cloudFetch('/rest/v1/sponsoren?id=eq.'+id,{method:'DELETE'},true);
+    if(!r.ok){toast('Fehler beim Löschen',true);return;}
+    toast('Sponsor gelöscht');closeModal();vSponsoren();
   }catch(e){toast('Fehler: '+e.message,true);}
 }
 
