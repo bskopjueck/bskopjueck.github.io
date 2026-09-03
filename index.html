@@ -661,7 +661,13 @@ async function vPortalNews(){
   try{
     var r=await cloudFetch('/rest/v1/portal_news?select=*&order=datum.desc',{},true);
     var nl=await r.json();
-    if(!Array.isArray(nl)){document.getElementById('news-liste').innerHTML='<div class="card"><p style="color:var(--rot)">Fehler beim Laden. SQL ggf. noch ausführen.</p></div>';return;}
+    if(!Array.isArray(nl)){
+      var msg='Fehler beim Laden.';
+      if(nl&&nl.message)msg=nl.message;
+      else if(nl&&nl.hint)msg=nl.hint;
+      document.getElementById('news-liste').innerHTML='<div class="card"><p style="color:var(--rot)">'+esc(msg)+'<br><small>Tipp: SQL news-bild.sql noch ausführen falls nicht gemacht.</small></p></div>';
+      return;
+    }
     var SICHT={'alle':'Alle Mitglieder','vorstand':'Nur Vorstand','custom':'Ausgewählte'};
     document.getElementById('news-liste').innerHTML=nl.length?
       '<div class="tbl-wrap"><table><tr><th>Datum</th><th>Titel</th><th>Bild</th><th>Sichtbar für</th><th></th></tr>'+
@@ -700,12 +706,17 @@ async function newsSpeichern(id){
   var o={titel:val('nf_titel'),inhalt:val('nf_inhalt'),datum:val('nf_datum')||heute(),sichtbar_fuer:val('nf_sicht')||'alle',bild_url:val('nf_bild').trim()||null};
   if(!o.titel){toast('Titel fehlt',true);return;}
   if(!o.inhalt){toast('Inhalt fehlt',true);return;}
-  var headers={'Content-Type':'application/json','Prefer':'return=minimal'};
   try{
     var r;
-    if(id)r=await cloudFetch('/rest/v1/portal_news?id=eq.'+id,{method:'PATCH',headers:headers,body:JSON.stringify(o)},true);
-    else r=await cloudFetch('/rest/v1/portal_news',{method:'POST',headers:headers,body:JSON.stringify(o)},true);
-    if(!r.ok){var t=await r.text();toast('Fehler: '+t.slice(0,80),true);return;}
+    var opt={body:JSON.stringify(o),headers:{'Prefer':'return=minimal'}};
+    if(id){opt.method='PATCH';r=await cloudFetch('/rest/v1/portal_news?id=eq.'+id,opt,true);}
+    else{opt.method='POST';r=await cloudFetch('/rest/v1/portal_news',opt,true);}
+    if(!r.ok){
+      var t=await r.text();
+      var msg=t;
+      try{var j=JSON.parse(t);msg=j.message||j.details||j.hint||t;}catch(e){}
+      toast('Fehler: '+msg.slice(0,120),true);return;
+    }
     closeModal();toast(id?'News aktualisiert ✓':'News veröffentlicht ✓');vPortalNews();
   }catch(e){toast('Fehler: '+e.message,true);}
 }
