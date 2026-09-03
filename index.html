@@ -1939,6 +1939,16 @@ function cloudStart(){
   });
 }
 /* ---------- Team & Cloud Ansicht ---------- */
+function vorstandInfo(){
+  openModal('<h2>Vorstand-Konto anlegen</h2><div class="hint">'+
+  '<b>Schritt 1:</b> Supabase öffnen: supabase.com/dashboard/project/rtpdminvaxxjcuyuqpta/auth/users<br><br>'+
+  '<b>Schritt 2:</b> &bdquo;Invite user&ldquo; → E-Mail eingeben<br><br>'+
+  '<b>Schritt 3:</b> Vorstandsmitglied bekommt E-Mail → setzt Passwort<br><br>'+
+  '<b>Schritt 4:</b> Hier Benutzerverwaltung → Häkchen &bdquo;Frei&ldquo; setzen → Speichern<br><br>'+
+  '<small style="color:var(--grau)">Normale Mitglieder registrieren sich selbst im Mitgliederbereich – die bekommen automatisch KEINEN CRM-Zugriff.</small>'+
+  '</div><div class="mfoot"><button class="btn btn-rot" onclick="closeModal()">Verstanden</button></div>');
+}
+
 function vCloud(){
   if(CL.modus==='claude'){C(claudeCloudHTML());return;}
   var html='';
@@ -1963,12 +1973,14 @@ function vCloud(){
   if(p&&p.role==='admin'&&cloudAngemeldet())benutzerLaden();
 }
 function benutzerLaden(){
-  cloudFetch('/rest/v1/profiles?select=*&order=created_at').then(function(r){return r.ok?r.json():null;}).then(function(rows){
+  cloudFetch('/rest/v1/profiles?crm_zugang=eq.true&select=*&order=created_at').then(function(r){return r.ok?r.json():null;}).then(function(rows){
     var e=document.getElementById('cloudUsers');if(!e)return;
     if(!rows){e.innerHTML='<div class="hint warn">Benutzer konnten nicht geladen werden.</div>';return;}
     e.innerHTML='<div class="tbl-wrap"><table><tr><th>E-Mail</th><th>Name</th><th>Rolle</th><th>Frei</th><th></th></tr>'+rows.map(function(u){
       return '<tr><td><small>'+esc(u.email||'')+'</small>'+(CL.session.user&&u.id===CL.session.user.id?' <span class="tag tag-blau">du</span>':'')+'</td><td><input id="cu_name_'+u.id+'" value="'+esc(u.name||'')+'" style="width:110px;padding:.3rem;border:1.5px solid var(--linie);border-radius:6px"></td><td><select id="cu_role_'+u.id+'"><option value="vorstand"'+(u.role!=='admin'?' selected':'')+'>Vorstand</option><option value="admin"'+(u.role==='admin'?' selected':'')+'>Admin</option></select></td><td style="text-align:center"><input type="checkbox" id="cu_ok_'+u.id+'" '+(u.approved?'checked':'')+'></td><td class="akt"><button class="btn btn-rot btn-sm" onclick="benutzerSpeichern(\''+u.id+'\')">Speichern</button></td></tr>';
-    }).join('')+'</table></div><p style="font-size:.76rem;color:var(--grau);margin-top:.6rem">Zugriff entziehen = Häkchen „Frei“ entfernen. Konten endgültig löschen geht nur im Supabase-Dashboard (Authentication → Users).</p>';
+    }).join('')+'</table></div>'+
+    '<button class="btn btn-hell btn-sm" style="margin:.6rem 0" onclick="vorstandInfo()">Wie lege ich einen Vorstand an?</button>'+
+    '<p style="font-size:.76rem;color:var(--grau);margin-top:.4rem">Nur Vorstand-Konten erscheinen hier. Normale Mitglieder (Mitgliederbereich) tauchen hier NICHT auf und haben keinen CRM-Zugriff.</p>'
   });
 }
 function benutzerSpeichern(id){
