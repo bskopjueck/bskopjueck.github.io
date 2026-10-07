@@ -220,6 +220,7 @@ th.sortable{cursor:pointer;user-select:none}th.sortable:hover{color:var(--gruen-
       <a class="nav" data-view="buchen"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Buchung erfassen</a>
       <a class="nav" data-view="journal"><svg class="ic" viewBox="0 0 24 24"><path d="M5 4h14v16H5z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>Journal</a>
       <a class="nav" data-view="offen"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Offene Posten</a>
+      <a class="nav" data-view="beitraege"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v5M16 4v5M7 14h4M7 17h6"/></svg>Jahresbeiträge</a>
       <a class="nav" data-view="import"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 21h16"/></svg>Import (Excel/CSV)</a>
       <a class="nav" data-view="lastschrift"><svg class="ic" viewBox="0 0 24 24"><path d="M4 17l6-6 4 4 6-8"/><path d="M14 7h6v6"/></svg>Lastschrift-Einzug</a>
       <a class="nav" data-view="konten"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h4"/></svg>Kontenplan</a>
@@ -366,6 +367,7 @@ var VIEWS={
   buchen:['Buchung erfassen','Einnahmen, Ausgaben, Forderungen'],
   journal:['Journal','Alle Buchungen chronologisch'],
   offen:['Offene Posten','Unbezahlte Beiträge & Forderungen'],
+  beitraege:['Jahresbeiträge','Beitragsläufe erstellen, bearbeiten & Sonderzahlungen'],
   konten:['Kontenplan','Buchhaltungskonten verwalten'],
   belege:['Belege','Buchungsbelege drucken'],
   auswertung:['Auswertung / EÜR','Einnahmen-Überschuss-Rechnung'],
@@ -380,7 +382,7 @@ function go(v,arg){
   document.getElementById('viewSub').textContent=VIEWS[v][1];
   document.getElementById('side').classList.remove('open');
   window.scrollTo(0,0);
-  ({dashboard:vDashboard,aufnahme:vAufnahme,mitglieder:vMitglieder,kontakte:vKontakte,schriftverkehr:vSchriftverkehr,'import':vImport,lastschrift:vLastschrift,kalender:vKalender,buchen:vBuchen,journal:vJournal,offen:vOffen,konten:vKonten,belege:vBelege,auswertung:vAuswertung,cloud:vCloud,einstellungen:vEinstellungen,portal_news:vPortalNews,sponsoren:vSponsoren})[v](arg);
+  ({dashboard:vDashboard,aufnahme:vAufnahme,mitglieder:vMitglieder,kontakte:vKontakte,schriftverkehr:vSchriftverkehr,'import':vImport,lastschrift:vLastschrift,kalender:vKalender,buchen:vBuchen,journal:vJournal,offen:vOffen,beitraege:vBeitraege,konten:vKonten,belege:vBelege,auswertung:vAuswertung,cloud:vCloud,einstellungen:vEinstellungen,portal_news:vPortalNews,sponsoren:vSponsoren})[v](arg);
 }
 document.querySelectorAll('.side a.nav').forEach(function(a){a.addEventListener('click',function(){go(a.dataset.view);});});
 function C(html){document.getElementById('content').innerHTML=html;}
@@ -549,7 +551,7 @@ function vJournal(){
   var q=(window._jq||'').toLowerCase();var jahr=window._jj||'alle';
   var list=DB.buchungen.filter(function(b){return (jahr==='alle'||jahrVon(b.datum)===parseInt(jahr,10))&&(!q||(b.text+' '+b.belegnr+' '+kName(b.kontaktId)).toLowerCase().indexOf(q)>=0);}).sort(function(a,b){return b.datum.localeCompare(a.datum)||b.belegnr.localeCompare(a.belegnr);});
   var jahre=[];DB.buchungen.forEach(function(b){var j=jahrVon(b.datum);if(jahre.indexOf(j)<0)jahre.push(j);});jahre.sort().reverse();
-  C('<div class="toolbar"><input type="search" placeholder="Text, Beleg, Name…" value="'+esc(window._jq||'')+'" oninput="window._jq=this.value;vJournal()"><select onchange="window._jj=this.value;vJournal()"><option value="alle">Alle Jahre</option>'+jahre.map(function(j){return '<option'+(String(j)===String(jahr)?' selected':'')+'>'+j+'</option>';}).join('')+'</select><button class="btn btn-rot" onclick="go(\'buchen\')">+ Buchung</button><span style="color:var(--grau);font-size:.84rem">'+list.length+' Buchungen</span></div>'+
+  C('<div class="toolbar"><input type="search" placeholder="Text, Beleg, Name…" value="'+esc(window._jq||'')+'" oninput="window._jq=this.value;vJournal()"><select onchange="window._jj=this.value;vJournal()"><option value="alle">Alle Jahre</option>'+jahre.map(function(j){return '<option'+(String(j)===String(jahr)?' selected':'')+'>'+j+'</option>';}).join('')+'</select><button class="btn btn-rot" onclick="go(\'buchen\')">+ Buchung</button><button class="btn btn-hell" onclick="journalDrucken()">📄 PDF</button><span style="color:var(--grau);font-size:.84rem">'+list.length+' Buchungen</span></div>'+
   '<div class="card"><div class="tbl-wrap"><table><tr><th>Datum</th><th>Beleg</th><th>Text</th><th>Soll</th><th>Haben</th><th>Kontakt</th><th>Status</th><th class="num">Betrag</th><th></th></tr>'+
   (list.length?list.map(function(b){return '<tr><td>'+dt(b.datum)+'</td><td><small>'+b.belegnr+'</small></td><td>'+esc(b.text)+'</td><td><small>'+kontoLabel(b.soll)+'</small></td><td><small>'+kontoLabel(b.haben)+'</small></td><td>'+esc(kName(b.kontaktId))+'</td><td>'+bStatus(b)+'</td><td class="num">'+eur(b.betrag)+'</td><td class="akt"><button class="btn btn-hell btn-sm" onclick="buchungBearbeiten(\''+b.id+'\')">Bearb.</button> <button class="btn btn-hell btn-sm" onclick="belegDrucken([\''+b.id+'\'])">Beleg</button> '+(b.haben==='4100'&&b.kontaktId&&b.status!=='storniert'?'<button class="btn btn-gruen btn-sm" onclick="spendeDrucken(\''+b.id+'\')">Spendenbesch.</button> ':'')+'<button class="btn btn-ghost btn-sm" onclick="buchungStorno(\''+b.id+'\')">Storno</button> '+
 '<button class="btn btn-ghost btn-sm" onclick="buchungLoeschen(\''+b.id+'\')" style="color:#CF0000">Löschen</button></td></tr>';}).join(''):'<tr><td colspan="9" class="empty">Keine Buchungen.</td></tr>')+'</table></div></div>');
@@ -575,9 +577,9 @@ function mahnliste(){
 }
 function vKonten(){
   var j=DB.settings.geschaeftsjahr;
-  C('<div class="toolbar"><button class="btn btn-rot" onclick="kontoForm()">+ Neues Konto</button><button class="btn btn-gruen" onclick="anfangsbestandDialog()">Anfangsbestände (Kasse/Bank)</button><span style="color:var(--grau);font-size:.84rem">Salden gesamt & Geschäftsjahr '+j+'</span></div>'+
+  C('<div class="toolbar"><button class="btn btn-rot" onclick="kontoForm()">+ Neues Konto</button><button class="btn btn-gruen" onclick="anfangsbestandDialog()">Anfangsbestände (Kasse/Bank)</button><button class="btn btn-hell" onclick="kontenplanDrucken()">📄 PDF</button><span style="color:var(--grau);font-size:.84rem">Salden gesamt & Geschäftsjahr '+j+'</span></div>'+
   '<div class="card"><div class="tbl-wrap"><table><tr><th>Nr.</th><th>Konto</th><th>Typ</th><th>Bereich</th><th class="num">Saldo '+j+'</th><th class="num">Saldo gesamt</th><th></th></tr>'+
-  DB.konten.slice().sort(function(a,b){return a.nr.localeCompare(b.nr);}).map(function(k){var s=saldo(k.nr),sj=saldoJahr(k.nr,j);return '<tr><td><span class="mnr">'+k.nr+'</span></td><td><b>'+esc(k.name)+'</b></td><td><small>'+TYPEN[k.typ]+'</small></td><td><small>'+BEREICHE[k.bereich]+'</small></td><td class="num">'+eur(sj)+'</td><td class="num '+(s<0?'saldo-neg':'')+'">'+eur(s)+'</td><td class="akt"><button class="btn btn-hell btn-sm" onclick="kontoForm(\''+k.nr+'\')">Bearbeiten</button></td></tr>';}).join('')+'</table></div></div>'+
+  DB.konten.slice().sort(function(a,b){return a.nr.localeCompare(b.nr);}).map(function(k){var s=saldo(k.nr),sj=saldoJahr(k.nr,j);return '<tr><td><span class="mnr">'+k.nr+'</span></td><td><b>'+esc(k.name)+'</b></td><td><small>'+TYPEN[k.typ]+'</small></td><td><small>'+BEREICHE[k.bereich]+'</small></td><td class="num">'+eur(sj)+'</td><td class="num '+(s<0?'saldo-neg':'')+'">'+eur(s)+'</td><td class="akt"><button class="btn btn-gruen btn-sm" onclick="kontoblatt(\''+k.nr+'\')">Kontoblatt</button> <button class="btn btn-hell btn-sm" onclick="kontoForm(\''+k.nr+'\')">Bearbeiten</button></td></tr>';}).join('')+'</table></div></div>'+
   '<div class="hint" style="margin-top:1rem"><b>Bereiche (für e.V. / Gemeinnützigkeit):</b> Ideeller Bereich = Beiträge, Spenden, Eintrittsgelder · Zweckbetrieb = z. B. Vereinskleidung an Mitglieder · Wirtschaftlicher Geschäftsbetrieb = Sponsoring, Werbung, Verkauf an Dritte · Vermögensverwaltung = Kasse, Bank, Forderungen. Für den n.e.V. kannst du die Bereiche ignorieren – sie tun nichts weh.</div>');
 }
 function kontoForm(nr){
@@ -593,6 +595,79 @@ function kontoSpeichern(nr){
   save();closeModal();toast('Konto gespeichert');vKonten();
 }
 function kontoLoeschen(nr){if(DB.buchungen.some(function(b){return b.soll===nr||b.haben===nr;})){toast('Konto hat Buchungen – kann nicht gelöscht werden',true);return;}if(!confirm('Konto '+nr+' löschen?'))return;DB.konten=DB.konten.filter(function(k){return k.nr!==nr;});save();closeModal();vKonten();}
+
+/* ---- Kontoblatt (Drilldown je Konto) ---- */
+function kontoblatt(nr){
+  var k=konto(nr);if(!k)return;
+  var j=DB.settings.geschaeftsjahr;
+  var all=DB.buchungen.filter(function(b){return b.soll===nr||b.haben===nr;}).sort(function(a,b){return a.datum.localeCompare(b.datum)||a.belegnr.localeCompare(b.belegnr);});
+  var saldoVor=0;
+  all.forEach(function(b){
+    var ist=(k.typ==='einnahme'||k.typ==='verbindlichkeit'||k.typ==='eigenkapital');
+    saldoVor+=(b.haben===nr?(ist?b.betrag:-b.betrag):(ist?-b.betrag:b.betrag));
+  });
+  var laufend=0;
+  var rows=all.map(function(b){
+    var ist=(k.typ==='einnahme'||k.typ==='verbindlichkeit'||k.typ==='eigenkapital');
+    var delta=(b.haben===nr?(ist?b.betrag:-b.betrag):(ist?-b.betrag:b.betrag));
+    laufend+=delta;
+    var gegenkto=b.soll===nr?b.haben:b.soll;
+    var sign=delta>=0?'+':'-';
+    return '<tr><td>'+dt(b.datum)+'</td><td><small>'+b.belegnr+'</small></td><td>'+esc(b.text)+'</td><td><small>'+kontoLabel(gegenkto)+'</small></td><td class="num" style="color:'+(delta>=0?'var(--gruen,#0E6B2F)':'#CF0000')+'">'+sign+eur(Math.abs(delta))+'</td><td class="num"><b>'+eur(laufend)+'</b></td><td class="akt"><button class="btn btn-hell btn-sm" onclick="belegDrucken([\''+b.id+'\'])">Beleg</button></td></tr>';
+  });
+  openModal('<h2>Kontoblatt: '+esc(k.nr)+' '+esc(k.name)+'</h2>'+
+    '<div style="display:flex;gap:1.2rem;margin-bottom:.7rem;flex-wrap:wrap">'+
+    '<span><b>Saldo gesamt:</b> '+eur(saldo(nr))+'</span>'+
+    '<span><b>Saldo '+j+':</b> '+eur(saldoJahr(nr,j))+'</span>'+
+    '<span style="color:var(--grau);font-size:.86rem">'+all.length+' Buchungen</span>'+
+    '<button class="btn btn-hell btn-sm" onclick="kontoblattDrucken(\''+nr+'\')">📄 PDF</button>'+
+    '</div>'+
+    '<div class="tbl-wrap" style="max-height:55vh;overflow-y:auto"><table><tr><th>Datum</th><th>Beleg</th><th>Text</th><th>Gegenkonto</th><th class="num">Betrag</th><th class="num">Saldo</th><th></th></tr>'+
+    (rows.length?rows.join(''):'<tr><td colspan="7" class="empty">Keine Buchungen für dieses Konto.</td></tr>')+
+    '</table></div>'+
+    '<div class="mfoot"><button class="btn btn-hell" onclick="closeModal()">Schließen</button></div>',true);
+}
+function kontoblattDrucken(nr){
+  var k=konto(nr);if(!k)return;
+  var j=DB.settings.geschaeftsjahr;
+  var s=DB.settings;
+  var all=DB.buchungen.filter(function(b){return b.soll===nr||b.haben===nr;}).sort(function(a,b){return a.datum.localeCompare(b.datum)||a.belegnr.localeCompare(b.belegnr);});
+  var laufend=0;
+  var ist=(k.typ==='einnahme'||k.typ==='verbindlichkeit'||k.typ==='eigenkapital');
+  var rows=all.map(function(b){
+    var delta=(b.haben===nr?(ist?b.betrag:-b.betrag):(ist?-b.betrag:b.betrag));
+    laufend+=delta;
+    var gegenkto=b.soll===nr?b.haben:b.soll;
+    return '<tr><td>'+dt(b.datum)+'</td><td>'+b.belegnr+'</td><td>'+esc(b.text)+'</td><td>'+kontoLabel(gegenkto)+'</td><td style="text-align:right">'+eur(delta)+'</td><td style="text-align:right"><b>'+eur(laufend)+'</b></td></tr>';
+  });
+  printHTML('<div class="beleg">'+bKopf('Kontoblatt: '+k.nr+' '+k.name,'',heute(),null)+
+    '<p>Saldo gesamt: <b>'+eur(saldo(nr))+'</b> &nbsp;|&nbsp; Saldo '+j+': <b>'+eur(saldoJahr(nr,j))+'</b></p>'+
+    '<table><tr><th>Datum</th><th>Beleg</th><th>Text</th><th>Gegenkonto</th><th style="text-align:right">Betrag</th><th style="text-align:right">Saldo</th></tr>'+
+    rows.join('')+
+    '<tr class="total"><td colspan="4">Abschlusssaldo</td><td colspan="2" style="text-align:right">'+eur(laufend)+'</td></tr>'+
+    '</table></div>');
+}
+function kontenplanDrucken(){
+  var j=DB.settings.geschaeftsjahr;
+  var s=DB.settings;
+  var rows=DB.konten.slice().sort(function(a,b){return a.nr.localeCompare(b.nr);}).map(function(k){
+    var sv=saldo(k.nr),sj=saldoJahr(k.nr,j);
+    return '<tr><td>'+k.nr+'</td><td><b>'+esc(k.name)+'</b></td><td>'+TYPEN[k.typ]+'</td><td style="text-align:right">'+eur(sj)+'</td><td style="text-align:right">'+eur(sv)+'</td></tr>';
+  });
+  printHTML('<div class="beleg">'+bKopf('Kontenplan','',heute(),null)+
+    '<table><tr><th>Nr.</th><th>Konto</th><th>Typ</th><th style="text-align:right">Saldo '+j+'</th><th style="text-align:right">Saldo gesamt</th></tr>'+
+    rows.join('')+'</table></div>');
+}
+function journalDrucken(){
+  var q=(window._jq||'').toLowerCase();var jahr=window._jj||'alle';
+  var s=DB.settings;
+  var list=DB.buchungen.filter(function(b){return (jahr==='alle'||jahrVon(b.datum)===parseInt(jahr,10))&&(!q||(b.text+' '+b.belegnr+' '+kName(b.kontaktId)).toLowerCase().indexOf(q)>=0);}).sort(function(a,b){return b.datum.localeCompare(a.datum)||b.belegnr.localeCompare(a.belegnr);});
+  var rows=list.map(function(b){return '<tr><td>'+dt(b.datum)+'</td><td>'+b.belegnr+'</td><td>'+esc(b.text)+'</td><td>'+kontoLabel(b.soll)+'</td><td>'+kontoLabel(b.haben)+'</td><td>'+esc(kName(b.kontaktId))+'</td><td style="text-align:right">'+eur(b.betrag)+'</td></tr>';});
+  printHTML('<div class="beleg">'+bKopf('Journal'+(jahr!=='alle'?' '+jahr:'')+(q?' – Filter: '+q:''),'',heute(),null)+
+    '<table><tr><th>Datum</th><th>Beleg</th><th>Text</th><th>Soll</th><th>Haben</th><th>Kontakt</th><th style="text-align:right">Betrag</th></tr>'+
+    rows.join('')+'<tr class="total"><td colspan="6">Summe ('+list.length+' Buchungen)</td><td style="text-align:right">'+eur(list.reduce(function(a,b){return a+b.betrag;},0))+'</td></tr>'+
+    '</table></div>');
+}
 function vBelege(){
   var list=DB.buchungen.slice().sort(function(a,b){return b.belegnr.localeCompare(a.belegnr);}).slice(0,200);
   C('<div class="hint">Jede Buchung hat automatisch einen Beleg mit fortlaufender Nummer. Mit „Drucken“ öffnet sich die Druckansicht – dort kannst du als <b>PDF speichern</b> (Ziel „Als PDF speichern“ im Druckdialog). Belege eines Mitglieds findest du auch in dessen Beitragskonto.</div>'+
@@ -2569,6 +2644,138 @@ function umlageAusfuehren(){
   save();closeModal();toast(n+' Forderungen „'+titel+'“ gestellt'+(skip?', '+skip+' übersprungen':''));go('offen');
 }
 
+/* ============================================================
+   JAHRESBEITRÄGE – Verwaltungsansicht
+   ============================================================ */
+function vBeitraege(){
+  var j=DB.settings.geschaeftsjahr;
+  // Alle Beitragsbuchungen sammeln und nach Jahr+Lauf gruppieren
+  var beitrBuchungen=DB.buchungen.filter(function(b){return b.art==='beitrag'&&b.status!=='storniert';});
+  // Läufe = eindeutige Kombination (jahr, optional umlage-Tag)
+  var laeufe={};
+  beitrBuchungen.forEach(function(b){
+    var key=b.jahr+'';
+    if(!laeufe[key])laeufe[key]={jahr:b.jahr,buchungen:[],summe:0,offen:0,bezahlt:0};
+    laeufe[key].buchungen.push(b);
+    laeufe[key].summe+=b.betrag;
+    if(b.status==='offen')laeufe[key].offen+=b.betrag;
+    else laeufe[key].bezahlt+=b.betrag;
+  });
+  // Sonderforderungen (art='umlage')
+  var umlagen=DB.buchungen.filter(function(b){return b.art==='umlage'&&b.status!=='storniert';});
+  var umlGruppen={};
+  umlagen.forEach(function(b){
+    var key=b.umlage||'(unbenannt)';
+    if(!umlGruppen[key])umlGruppen[key]={titel:key,buchungen:[],summe:0,offen:0};
+    umlGruppen[key].buchungen.push(b);
+    umlGruppen[key].summe+=b.betrag;
+    if(b.status==='offen')umlGruppen[key].offen+=b.betrag;
+  });
+  var laeufeKeys=Object.keys(laeufe).sort().reverse();
+  var umlKeys=Object.keys(umlGruppen).sort();
+  var laeufeHTML=laeufeKeys.length?laeufeKeys.map(function(key){
+    var l=laeufe[key];
+    var anteil=l.summe>0?Math.round(l.bezahlt/l.summe*100):0;
+    var bar='<div style="background:var(--linie);border-radius:4px;height:6px;width:100%;margin-top:.25rem"><div style="background:var(--gruen,#0E6B2F);border-radius:4px;height:6px;width:'+anteil+'%"></div></div>';
+    return '<div class="card" style="margin-bottom:.7rem"><div style="display:flex;gap:.8rem;align-items:center;flex-wrap:wrap">'+
+      '<div style="flex:1;min-width:160px"><b>Jahresbeitrag '+esc(l.jahr)+'</b><br><small>'+l.buchungen.length+' Mitglieder · Gesamt: '+eur(l.summe)+'</small>'+bar+'</div>'+
+      '<div style="text-align:right;min-width:140px"><span style="color:#CF0000">offen: '+eur(l.offen)+'</span><br><span style="color:var(--gruen,#0E6B2F)">bezahlt: '+eur(l.bezahlt)+'</span></div>'+
+      '<div style="display:flex;gap:.4rem;flex-wrap:wrap">'+
+        '<button class="btn btn-hell btn-sm" onclick="beitragslaufDetail(\''+key+'\')">Details</button>'+
+        '<button class="btn btn-hell btn-sm" onclick="beitragslaufDrucken(\''+key+'\')">📄 PDF</button>'+
+        '<button class="btn btn-ghost btn-sm" onclick="beitragslaufLoeschen(\''+key+'\')" style="color:#CF0000">Löschen</button>'+
+      '</div>'+
+    '</div></div>';
+  }).join(''):'<div class="empty" style="padding:1.5rem">Noch keine Jahresbeiträge erstellt.</div>';
+
+  var umlHTML=umlKeys.length?umlKeys.map(function(key){
+    var u=umlGruppen[key];
+    var anteil=u.summe>0?Math.round((u.summe-u.offen)/u.summe*100):0;
+    var bar='<div style="background:var(--linie);border-radius:4px;height:6px;width:100%;margin-top:.25rem"><div style="background:var(--gruen,#0E6B2F);border-radius:4px;height:6px;width:'+anteil+'%"></div></div>';
+    return '<div class="card" style="margin-bottom:.7rem"><div style="display:flex;gap:.8rem;align-items:center;flex-wrap:wrap">'+
+      '<div style="flex:1;min-width:160px"><b>'+esc(u.titel)+'</b><br><small>'+u.buchungen.length+' Forderungen · Gesamt: '+eur(u.summe)+'</small>'+bar+'</div>'+
+      '<div style="text-align:right;min-width:140px"><span style="color:#CF0000">offen: '+eur(u.offen)+'</span><br><span style="color:var(--gruen,#0E6B2F)">bezahlt: '+eur(u.summe-u.offen)+'</span></div>'+
+      '<div style="display:flex;gap:.4rem;flex-wrap:wrap">'+
+        '<button class="btn btn-hell btn-sm" onclick="umlageDetail(\''+key.replace(/'/g,"\\'")+'\')">Details</button>'+
+        '<button class="btn btn-ghost btn-sm" onclick="umlageLoeschen(\''+key.replace(/'/g,"\\'")+'\',true)" style="color:#CF0000">Löschen</button>'+
+      '</div>'+
+    '</div></div>';
+  }).join(''):'<div class="empty" style="padding:1rem">Noch keine Sonderforderungen.</div>';
+
+  C('<div class="toolbar">'+
+    '<button class="btn btn-rot" onclick="jahresbeitraegeStellen([])">+ Jahresbeitrag stellen</button>'+
+    '<button class="btn btn-hell" onclick="umlageDialog([])">+ Sonderforderung</button>'+
+    '<button class="btn btn-hell" onclick="beitragsuebersichtDrucken()">📄 Gesamtübersicht PDF</button>'+
+    '</div>'+
+    '<h3 style="margin:.2rem 0 .5rem">Jahresbeitrags-Läufe</h3>'+
+    laeufeHTML+
+    '<h3 style="margin:1.2rem 0 .5rem">Sonderforderungen / Projekte</h3>'+
+    umlHTML+
+    '<div class="hint" style="margin-top:1rem">Hier siehst du alle Beitragsläufe auf einen Blick. Mit <b>Details</b> kannst du einzelne Mitglieder sehen. Mit <b>Löschen</b> werden alle offenen Forderungen eines Laufs storniert (bereits bezahlte bleiben erhalten).</div>');
+}
+function beitragslaufDetail(jahr){
+  var j=parseInt(jahr,10);
+  var list=DB.buchungen.filter(function(b){return b.art==='beitrag'&&b.status!=='storniert'&&b.jahr===j;}).sort(function(a,b){return kName(a.kontaktId).localeCompare(kName(b.kontaktId));});
+  openModal('<h2>Jahresbeitrag '+j+' – Details</h2>'+
+    '<div class="tbl-wrap" style="max-height:55vh;overflow-y:auto"><table><tr><th>Mitglied</th><th>Text</th><th>Fällig</th><th>Status</th><th class="num">Betrag</th><th></th></tr>'+
+    list.map(function(b){var m=b.mitgliedId?mitglied(b.mitgliedId):null;return '<tr><td>'+esc(kName(b.kontaktId))+(m?' <small>('+m.mitgliedsnr+')</small>':'')+'</td><td>'+esc(b.text)+'</td><td>'+dt(b.faellig||b.datum)+'</td><td>'+bStatus(b)+'</td><td class="num">'+eur(b.betrag)+'</td><td class="akt">'+
+      (b.status==='offen'?'<button class="btn btn-gruen btn-sm" onclick="zahlungDialog(\''+b.id+'\')">Zahlung</button> ':'')+'<button class="btn btn-hell btn-sm" onclick="belegDrucken([\''+b.id+'\'])">Beleg</button></td></tr>';}).join('')+
+    '</table></div><div class="mfoot"><button class="btn btn-hell" onclick="closeModal()">Schließen</button><button class="btn btn-gruen" onclick="beitragslaufDrucken(\''+jahr+'\')">📄 PDF</button></div>',true);
+}
+function beitragslaufDrucken(jahr){
+  var j=parseInt(jahr,10);
+  var s=DB.settings;
+  var list=DB.buchungen.filter(function(b){return b.art==='beitrag'&&b.status!=='storniert'&&b.jahr===j;}).sort(function(a,b){return kName(a.kontaktId).localeCompare(kName(b.kontaktId));});
+  var summe=list.reduce(function(a,b){return a+b.betrag;},0);
+  var offen=list.filter(function(b){return b.status==='offen';}).reduce(function(a,b){return a+b.betrag;},0);
+  printHTML('<div class="beleg">'+bKopf('Jahresbeitrag '+j,'',heute(),null)+
+    '<table><tr><th>Mitglied</th><th>Status</th><th>Fällig</th><th style="text-align:right">Betrag</th></tr>'+
+    list.map(function(b){var m=b.mitgliedId?mitglied(b.mitgliedId):null;return '<tr><td>'+esc(kName(b.kontaktId))+(m?' ('+m.mitgliedsnr+')':'')+'</td><td>'+(b.status==='bezahlt'?'✓ bezahlt':'offen')+'</td><td>'+dt(b.faellig||b.datum)+'</td><td style="text-align:right">'+eur(b.betrag)+'</td></tr>';}).join('')+
+    '<tr class="total"><td colspan="3">Gesamt ('+list.length+' Mitglieder)</td><td style="text-align:right">'+eur(summe)+'</td></tr>'+
+    '<tr><td colspan="3" style="color:#CF0000">davon offen</td><td style="text-align:right;color:#CF0000">'+eur(offen)+'</td></tr>'+
+    '</table></div>');
+}
+function beitragslaufLoeschen(jahr){
+  var j=parseInt(jahr,10);
+  var list=DB.buchungen.filter(function(b){return b.art==='beitrag'&&b.status!=='storniert'&&b.jahr===j;});
+  var offen=list.filter(function(b){return b.status==='offen';});
+  var bezahlt=list.filter(function(b){return b.status!=='offen';});
+  if(!confirm('Jahresbeitrag '+j+' löschen?\n\nOffene Forderungen ('+offen.length+'): werden storniert.\nBereits bezahlte ('+bezahlt.length+'): bleiben erhalten.\n\nFortfahren?'))return;
+  offen.forEach(function(b){b.status='storniert';if(b.mitgliedId){var m=mitglied(b.mitgliedId);if(m)m.beitragsjahre=(m.beitragsjahre||[]).filter(function(y){return y!==j;});}});
+  save();toast('Jahresbeitrag '+j+': '+offen.length+' offene Forderungen storniert');vBeitraege();
+}
+function umlageDetail(titel){
+  var list=DB.buchungen.filter(function(b){return b.art==='umlage'&&b.status!=='storniert'&&b.umlage===titel;}).sort(function(a,b){return kName(a.kontaktId).localeCompare(kName(b.kontaktId));});
+  openModal('<h2>Sonderforderung: '+esc(titel)+'</h2>'+
+    '<div class="tbl-wrap" style="max-height:55vh;overflow-y:auto"><table><tr><th>Mitglied</th><th>Fällig</th><th>Status</th><th class="num">Betrag</th><th></th></tr>'+
+    list.map(function(b){var m=b.mitgliedId?mitglied(b.mitgliedId):null;return '<tr><td>'+esc(kName(b.kontaktId))+(m?' <small>('+m.mitgliedsnr+')</small>':'')+'</td><td>'+dt(b.faellig||b.datum)+'</td><td>'+bStatus(b)+'</td><td class="num">'+eur(b.betrag)+'</td><td class="akt">'+
+      (b.status==='offen'?'<button class="btn btn-gruen btn-sm" onclick="zahlungDialog(\''+b.id+'\')">Zahlung</button> ':'')+'</td></tr>';}).join('')+
+    '</table></div><div class="mfoot"><button class="btn btn-hell" onclick="closeModal()">Schließen</button></div>',true);
+}
+function umlageLoeschen(titel){
+  var list=DB.buchungen.filter(function(b){return b.art==='umlage'&&b.status!=='storniert'&&b.umlage===titel;});
+  var offen=list.filter(function(b){return b.status==='offen';});
+  if(!offen.length){toast('Keine offenen Forderungen – storniere einzelne Buchungen im Journal',true);return;}
+  if(!confirm('Sonderforderung „'+titel+'" löschen?\n\n'+offen.length+' offene Forderungen werden storniert.\nBereits bezahlte bleiben erhalten.\n\nFortfahren?'))return;
+  offen.forEach(function(b){b.status='storniert';});
+  save();toast(offen.length+' Forderungen storniert');vBeitraege();
+}
+function beitragsuebersichtDrucken(){
+  var s=DB.settings;
+  var beitrBuchungen=DB.buchungen.filter(function(b){return b.art==='beitrag'&&b.status!=='storniert';});
+  var laeufe={};
+  beitrBuchungen.forEach(function(b){
+    var key=b.jahr+'';
+    if(!laeufe[key])laeufe[key]={jahr:b.jahr,n:0,summe:0,offen:0};
+    laeufe[key].n++;laeufe[key].summe+=b.betrag;
+    if(b.status==='offen')laeufe[key].offen+=b.betrag;
+  });
+  var keys=Object.keys(laeufe).sort().reverse();
+  printHTML('<div class="beleg">'+bKopf('Beitragsübersicht','',heute(),null)+
+    '<table><tr><th>Jahr</th><th>Mitglieder</th><th style="text-align:right">Gesamt</th><th style="text-align:right">Offen</th><th style="text-align:right">Bezahlt</th></tr>'+
+    keys.map(function(k){var l=laeufe[k];return '<tr><td>'+l.jahr+'</td><td>'+l.n+'</td><td style="text-align:right">'+eur(l.summe)+'</td><td style="text-align:right;color:#CF0000">'+eur(l.offen)+'</td><td style="text-align:right;color:green">'+eur(l.summe-l.offen)+'</td></tr>';}).join('')+
+    '</table></div>');
+}
 /* ============================================================
    V11: ANFANGSBESTÄNDE & JAHRESABSCHLUSS
    ============================================================ */
