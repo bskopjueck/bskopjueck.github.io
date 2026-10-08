@@ -1915,20 +1915,76 @@ function buchungBearbSpeichern(id){
 }
 
 /* ---------- Sonderforderungen / Umlagen (z. B. Karnevalsgeld) ---------- */
-/* ---------- Offene Posten mit Suche & Sonderforderung ---------- */
+/* ---------- Offene Posten – nach Mitglied gruppiert ---------- */
 function vOffen(){
   var f=window._of||'alle';var q=(window._oq||'').toLowerCase();
-  var list=offenePosten().filter(function(b){if(f==='mahn')return !!mahnVorschlag(b);if(f==='lastschrift'){var m=b.mitgliedId?mitglied(b.mitgliedId):null;return m&&m.zahlungsweise==='lastschrift';}return true;})
-    .filter(function(b){return !q||(b.text+' '+b.belegnr+' '+(b.umlage||'')+' '+kName(b.kontaktId)).toLowerCase().indexOf(q)>=0;})
-    .sort(function(a,b){return (a.faellig||a.datum).localeCompare(b.faellig||b.datum);});
-  var summe=list.reduce(function(a,b){return a+b.betrag;},0);var nMahn=offenePosten().filter(function(b){return !!mahnVorschlag(b);}).length;
-  C('<div class="toolbar"><span class="tag tag-rot" style="font-size:.85rem;padding:.4rem .9rem">Offen: '+eur(summe)+'</span><input type="search" placeholder="z. B. Karnevalsgeld, Name…" value="'+esc(window._oq||'')+'" oninput="window._oq=this.value;vOffen()"><select onchange="window._of=this.value;vOffen()"><option value="alle"'+(f==='alle'?' selected':'')+'>Alle offenen Posten</option><option value="mahn"'+(f==='mahn'?' selected':'')+'>Mahnung fällig ('+nMahn+')</option><option value="lastschrift"'+(f==='lastschrift'?' selected':'')+'>Lastschrift-Zahler</option></select><button class="btn btn-rot" onclick="mahnlaufDialog()">Mahnlauf'+(nMahn?' ('+nMahn+')':'')+'</button><button class="btn btn-gruen" onclick="umlageDialog()">+ Sonderforderung</button><button class="btn btn-hell" onclick="jahresbeitraegeStellen()">Jahresbeiträge stellen</button><button class="btn btn-hell" onclick="mahnliste()">Liste drucken</button></div>'+
-  '<div class="card"><div class="tbl-wrap"><table><tr><th>Fällig am</th><th>Beleg</th><th>Mitglied / Kontakt</th><th>Text</th><th>Mahnstufe</th><th class="num">Betrag</th><th></th></tr>'+
-  (list.length?list.map(function(b){var m=b.mitgliedId?mitglied(b.mitgliedId):null;var fa=b.faellig||b.datum;var tage=tageSeit(fa);var v=mahnVorschlag(b);
-    var akt='<button class="btn btn-gruen btn-sm" onclick="zahlungDialog(\'' + b.id + '\')">Zahlung</button> ';
-    if(m){akt+=v&&v!=='anhoerung'?'<button class="btn btn-rot btn-sm" onclick="briefDrucken(\'' + v + '\',\'' + m.id + '\')">'+BRIEF_TITEL[v]+'</button> ':v==='anhoerung'?'<button class="btn btn-rot btn-sm" onclick="anhoerungDialog(\'' + m.id + '\')">Ausschluss prüfen</button> ':'';akt+='<button class="btn btn-hell btn-sm" onclick="mitgliedDetail(\'' + m.id + '\')">Akte</button> ';}
-    akt+='<button class="btn btn-hell btn-sm" onclick="buchungBearbeiten(\'' + b.id + '\')">Bearb.</button> <button class="btn btn-hell btn-sm" onclick="belegDrucken([\'' + b.id + '\'])">Beleg</button>';
-    return '<tr><td>'+dt(fa)+(tage>0?' <span class="tag '+(tage>30?'tag-rot':'tag-gelb')+'">'+tage+' Tage</span>':'<br><small style="color:var(--grau)">noch nicht fällig</small>')+'</td><td><small>'+b.belegnr+'</small></td><td><b>'+esc(kName(b.kontaktId))+'</b>'+(m?' <span class="mnr">'+m.mitgliedsnr+'</span>'+(m.zahlungsweise==='lastschrift'?' <span class="tag tag-blau">LS</span>':''):'')+'</td><td>'+esc(b.text)+'</td><td>'+mahnTag(b)+'</td><td class="num"><b>'+eur(b.betrag)+'</b></td><td class="akt">'+akt+'</td></tr>';}).join(''):'<tr><td colspan="7" class="empty">Keine offenen Posten in dieser Ansicht.</td></tr>')+'</table></div></div>');
+  var alle=offenePosten().sort(function(a,b){return (a.faellig||a.datum).localeCompare(b.faellig||b.datum);});
+  var list=alle.filter(function(b){
+    if(f==='mahn')return !!mahnVorschlag(b);
+    if(f==='lastschrift'){var m=b.mitgliedId?mitglied(b.mitgliedId):null;return m&&m.zahlungsweise==='lastschrift';}
+    if(f==='beitrag')return b.art==='beitrag';
+    if(f==='umlage')return b.art==='umlage';
+    return true;
+  }).filter(function(b){return !q||(b.text+' '+b.belegnr+' '+(b.umlage||'')+' '+kName(b.kontaktId)).toLowerCase().indexOf(q)>=0;});
+  var summe=list.reduce(function(s,b){return s+b.betrag;},0);
+  var nMahn=alle.filter(function(b){return !!mahnVorschlag(b);}).length;
+  // Gruppieren nach Kontakt/Mitglied
+  var gruppen={};var reihenfolge=[];
+  list.forEach(function(b){
+    var key=b.kontaktId||b.mitgliedId||'?';
+    if(!gruppen[key]){gruppen[key]={kontaktId:b.kontaktId,mitgliedId:b.mitgliedId,buchungen:[],summe:0};reihenfolge.push(key);}
+    if(b.mitgliedId&&!gruppen[key].mitgliedId)gruppen[key].mitgliedId=b.mitgliedId;
+    gruppen[key].buchungen.push(b);gruppen[key].summe+=b.betrag;
+  });
+  var gruppenHTML=reihenfolge.length?reihenfolge.map(function(key){
+    var g=gruppen[key];var m=g.mitgliedId?mitglied(g.mitgliedId):null;
+    var name=kName(g.kontaktId)||'Unbekannt';
+    var badges=(m?'<span class="mnr" style="margin-left:.35rem">'+m.mitgliedsnr+'</span>':'')+
+               (m&&m.zahlungsweise==='lastschrift'?' <span class="tag tag-blau" style="font-size:.7rem">LS</span>':'');
+    var nM=g.buchungen.filter(function(b){return !!mahnVorschlag(b);}).length;
+    var rows=g.buchungen.map(function(b){
+      var fa=b.faellig||b.datum;var tage=tageSeit(fa);var v=mahnVorschlag(b);
+      var akt='<button class="btn btn-gruen btn-sm" onclick="zahlungDialog(\'' + b.id + '\')">Zahlung</button>';
+      if(m){if(v&&v!=='anhoerung')akt+=' <button class="btn btn-rot btn-sm" onclick="briefDrucken(\'' + v + '\',\'' + m.id + '\')">'+BRIEF_TITEL[v]+'</button>';else if(v==='anhoerung')akt+=' <button class="btn btn-rot btn-sm" onclick="anhoerungDialog(\'' + m.id + '\')">Ausschluss</button>';}
+      akt+=' <button class="btn btn-hell btn-sm" onclick="buchungBearbeiten(\'' + b.id + '\')">✎</button>';
+      return '<div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;padding:.4rem .75rem;border-top:1px solid var(--linie)">'+
+        '<div style="flex:1;min-width:160px">'+
+          '<div style="font-size:.84rem">'+esc(b.text)+'</div>'+
+          '<div style="font-size:.77rem;color:var(--grau);display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.1rem">'+
+            '<span>Fällig: '+dt(fa)+'</span>'+
+            (tage>0?'<span class="tag '+(tage>30?'tag-rot':'tag-gelb')+'" style="font-size:.7rem">'+tage+' Tage überfällig</span>':tage<0?'<span>in '+(-tage)+' Tagen</span>':'<span>heute fällig</span>')+
+            mahnTag(b)+
+          '</div>'+
+        '</div>'+
+        '<b style="min-width:80px;text-align:right">'+eur(b.betrag)+'</b>'+
+        '<div style="display:flex;gap:.25rem;flex-wrap:wrap">'+akt+'</div>'+
+      '</div>';
+    }).join('');
+    return '<div class="card" style="margin-bottom:.75rem;padding:0;overflow:hidden">'+
+      '<div style="display:flex;align-items:center;gap:.6rem;padding:.55rem .75rem;background:var(--hell)">'+
+        '<div style="flex:1;min-width:0"><b>'+esc(name)+'</b>'+badges+'</div>'+
+        '<div style="text-align:right;white-space:nowrap"><span style="color:#CF0000;font-weight:700">'+eur(g.summe)+'</span><br>'+
+          '<small style="color:var(--grau)">'+g.buchungen.length+' Posten'+(nM?' · <span style="color:#CF0000">'+nM+' Mahnung'+(nM>1?'en':'')+'</span>':'')+'</small>'+
+        '</div>'+
+        (m?'<button class="btn btn-hell btn-sm" onclick="mitgliedDetail(\'' + m.id + '\')">Akte</button>':'')+
+      '</div>'+rows+
+    '</div>';
+  }).join(''):'<div class="empty" style="padding:2rem;text-align:center">Keine offenen Posten'+(q||f!=='alle'?' in dieser Ansicht':'')+'. 🎉</div>';
+  C('<div class="toolbar">'+
+    '<span class="tag tag-rot" style="font-size:.85rem;padding:.4rem .9rem;white-space:nowrap">Offen: '+eur(summe)+'</span>'+
+    '<input type="search" placeholder="Name, Beleg, Text …" value="'+esc(window._oq||'')+'" oninput="window._oq=this.value;vOffen()">'+
+    '<select onchange="window._of=this.value;vOffen()">'+
+      '<option value="alle"'+(f==='alle'?' selected':'')+'>Alle ('+list.length+')</option>'+
+      '<option value="beitrag"'+(f==='beitrag'?' selected':'')+'>Jahresbeiträge</option>'+
+      '<option value="umlage"'+(f==='umlage'?' selected':'')+'>Sonderforderungen</option>'+
+      '<option value="mahn"'+(f==='mahn'?' selected':'')+'>Mahnung fällig ('+nMahn+')</option>'+
+      '<option value="lastschrift"'+(f==='lastschrift'?' selected':'')+'>Lastschrift-Zahler</option>'+
+    '</select>'+
+    '<button class="btn btn-rot" onclick="mahnlaufDialog()">Mahnlauf'+(nMahn?' ('+nMahn+')':'')+'</button>'+
+    '<button class="btn btn-gruen" onclick="umlageDialog([])">+ Sonderforderung</button>'+
+    '<button class="btn btn-hell" onclick="jahresbeitraegeStellen([])">Jahresbeiträge</button>'+
+    '<button class="btn btn-hell" onclick="mahnliste()">📄 Liste</button>'+
+  '</div>'+gruppenHTML);
 }
 
 /* ---------- Import (Excel / CSV) ---------- */
@@ -2356,7 +2412,7 @@ function vCloud(){
   current='cloud';brand();
   var tabs=['vorstand','portal','einstellungen'];
   C('<div class="tabs" id="ct">'+
-  ['Vorstand & CRM','Mitglieder freischalten','Verbindung'].map(function(t,i){return '<button '+(i===0?'class="on"':'')+' onclick="ctTab(\'+i+\')">'+t+'</button>';}).join('')+
+  ['Vorstand & CRM','Mitglieder freischalten','Verbindung'].map(function(t,i){return '<button '+(i===0?'class="on"':'')+' onclick="ctTab('+i+')">'+t+'</button>';}).join('')+
   '</div>'+
   '<div id="ct0"></div><div id="ct1" style="display:none"></div><div id="ct2" style="display:none"></div>');
   if(cloudAngemeldet()){cloudVorstand();cloudPortal();badgeUpdate();}else{
@@ -2460,11 +2516,6 @@ async function vSave(btn){
   if(r.ok){toast('Gespeichert ✓');cloudVorstand();}else toast('Fehler',true);
 }
 
-async function vSave(id){
-  var body={name:val('vn_'+id),role:val('vr_'+id),approved:document.getElementById('vf_'+id).checked,crm_zugang:true};
-  var r=await cloudFetch('/rest/v1/profiles?id=eq.'+id,{method:'PATCH',body:JSON.stringify(body),headers:{'Prefer':'return=minimal'}},true);
-  if(r.ok){toast('Gespeichert ✓');cloudVorstand();}else toast('Fehler',true);
-}
 function vNeu(){
   openModal('<h2>Vorstand-Konto anlegen</h2>'+
   '<div class="hint">Lege ein Konto für ein Vorstandsmitglied an. Du vergibst direkt E-Mail und Passwort.</div>'+
@@ -2864,7 +2915,7 @@ function umlageDialog(ids){
   var kEinn=DB.konten.filter(function(k){return k.typ==='einnahme';});
   var vorhanden=[];DB.buchungen.forEach(function(b){if(b.umlage&&vorhanden.indexOf(b.umlage)<0)vorhanden.push(b.umlage);});
   openModal('<h2>Projekt- / Sonderforderung stellen</h2><div class="hint">Eigene Forderungsläufe neben dem Jahresbeitrag – z. B. <b>„Teilnahmegebühr Karneval '+s.geschaeftsjahr+'“</b>, „Kirmes-Umzug“ oder eine Kostümumlage. Du kannst beliebig viele solcher Läufe machen; wer die Forderung mit diesem Namen schon hat, wird übersprungen (den Lauf kannst du also später für Nachzügler wiederholen).</div>'+
-  '<div class="field"><label>Bezeichnung des Projekts</label><input id="um_titel" list="um_liste" placeholder="Teilnahmegebühr Karneval '+s.geschaeftsjahr+'"><datalist id="um_liste">'+vorhanden.map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></div>'+
+  '<div class="field"><label>Bezeichnung des Projekts</label><input id="um_titel" list="um_titel_dl" placeholder="Teilnahmegebühr Karneval '+s.geschaeftsjahr+'"><datalist id="um_titel_dl">'+vorhanden.map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></div>'+
   '<div class="frow3"><div class="field"><label>Betrag pro Mitglied (€)</label><input id="um_betrag" type="number" step="0.01" min="0.01" oninput="umPlanRender()"></div><div class="field"><label>Fällig am</label><input id="um_faellig" type="date" value="'+fristDatum(30)+'" onchange="umPlanRender()"></div><div class="field"><label>Zahlbar in</label>'+ratenSelect('um_raten',1).replace('<select id="um_raten">','<select id="um_raten" onchange="umPlanRender()">')+'</div></div>'+
   '<div class="frow"><div class="field"><label>Erlöskonto</label><select id="um_konto">'+kEinn.map(function(k){return '<option value="'+k.nr+'"'+(k.nr==='4400'?' selected':'')+'>'+k.nr+' '+k.name+'</option>';}).join('')+'</select></div><div class="field"><label>Schnellauswahl</label><div style="display:flex;gap:.35rem;flex-wrap:wrap"><button class="btn btn-hell btn-sm" onclick="pickAlle(true,\'umListeRender\',\'um_zaehler\')">Alle aktiven</button><button class="btn btn-hell btn-sm" onclick="umSchnell(\'aktiv\')">Nur Aktivmitgl.</button><button class="btn btn-hell btn-sm" onclick="umSchnell(\'ehren\')">Nur Ehrenmitgl.</button></div></div></div>'+
   '<div id="um_plan"></div>'+
