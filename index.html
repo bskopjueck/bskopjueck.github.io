@@ -108,6 +108,10 @@ td.akt{white-space:nowrap}
 .tabs{display:flex;gap:25px;border-bottom:1px solid #dbe3eb;margin-bottom:1rem;font-size:13px;height:35px;align-items:flex-end}
 .tabs button,.tabs span{background:none;border:none;border-bottom:2px solid transparent;padding:.5rem 0;font-size:13px;color:#627180;cursor:pointer;margin-bottom:-1px;font-weight:400;line-height:1}
 .tabs button.on,.tabs button:first-child,.tabs span.on{color:#0070e8;border-bottom-color:#0070e8}
+.hc-stabs{display:flex;gap:0;border-bottom:2px solid var(--linie);margin-bottom:1.2rem;overflow-x:auto}
+.hc-stabs button{background:none;border:none;border-bottom:3px solid transparent;padding:.55rem 1.1rem;color:var(--grau);cursor:pointer;font-size:.88rem;white-space:nowrap;margin-bottom:-2px;font-weight:500;line-height:1.4;outline:none}
+.hc-stabs button.on{color:#0070e8;border-bottom-color:#0070e8;font-weight:600}
+.hc-stabs button:hover:not(.on){color:var(--ink)}
 .saldo-pos{color:var(--gruen-dunkel);font-weight:700}.saldo-neg{color:var(--rot);font-weight:700}
 /* REFERENCE PANEL / STATS / LAYOUT CLASSES */
 .panel{background:white;border:1px solid #dbe3eb;border-radius:4px;margin-bottom:17px}
@@ -1725,11 +1729,11 @@ function vSchriftverkehr(){
 function vEinstellungen(){
   var s=DB.settings;
   var tab=window._setab||0;
-  C('<div class=”tabs hc-settings-tabs”>'+
+  C('<div class=”hc-stabs”>'+
   ['Verein & Briefkopf','Bank & SEPA','Datensicherung','Beiträge & Fristen','Rollen & Vorlagen'].map(function(t,i){return '<button class=”'+(i===tab?'on':'')+'” onclick=”einstellungenTab('+i+')”>'+t+'</button>';}).join('')+
   '</div><div class=”hc-settings-panels”>'+
   /* Panel 0: Verein & Briefkopf */
-  '<div class=”card hc-settings-panel” id=”hc-settings-0”'+(tab!==0?' style=”display:none”':'')+'>'+
+  '<div class=”card hc-settings-panel” id=”hc-settings-0”'+(tab!==0?' hidden':'')+'>'+
   '<h3>Vereinsdaten & Briefkopf</h3>'+
   '<div class=”field”><label>Vereinsname</label><input id=”s_name” value=”'+esc(s.vereinsname)+'”></div>'+
   '<div class=”frow”><div class=”field”><label>Rechtsform</label><select id=”s_form”><option'+(s.rechtsform==='n.e.V.'?' selected':'')+'>n.e.V.</option><option'+(s.rechtsform==='e.V.'?' selected':'')+'>e.V.</option></select></div><div class=”field”><label>Steuernummer (optional)</label><input id=”s_stnr” value=”'+esc(s.steuernummer||'')+'”></div></div>'+
@@ -1741,13 +1745,13 @@ function vEinstellungen(){
   '<div class=”frow”><div class=”field”><label>1. Vorsitzende/r</label><input id=”s_vorsitz” value=”'+esc(s.vorsitz||'')+'”></div><div class=”field”><label>Kassenwart/in</label><input id=”s_kasse” value=”'+esc(s.kassenwart||'')+'”></div></div>'+
   '</div>'+
   /* Panel 1: Bank & SEPA */
-  '<div class=”card hc-settings-panel” id=”hc-settings-1”'+(tab!==1?' style=”display:none”':'')+'>'+
+  '<div class=”card hc-settings-panel” id=”hc-settings-1”'+(tab!==1?' hidden':'')+'>'+
   '<h3>Bankverbindung & SEPA</h3>'+
   '<div class=”frow”><div class=”field”><label>Kontoinhaber</label><input id=”s_inhaber” value=”'+esc(s.kontoinhaber||'')+'” placeholder=”z. B. Tom Hollinder oder Vereinsname”></div><div class=”field”><label>Bank</label><input id=”s_bank” value=”'+esc(s.bank||'')+'” placeholder=”C24 Bank”></div></div>'+
   '<div class=”frow”><div class=”field”><label>IBAN</label><input id=”s_iban” value=”'+esc(s.iban||'')+'”></div><div class=”field”><label>Gläubiger-ID (SEPA)</label><input id=”s_glid” value=”'+esc(s.glaeubigerId||'')+'” placeholder=”DE98ZZZ09999999999”></div></div>'+
   '</div>'+
   /* Panel 2: Datensicherung */
-  '<div class=”card hc-settings-panel” id=”hc-settings-2”'+(tab!==2?' style=”display:none”':'')+'>'+
+  '<div class=”card hc-settings-panel” id=”hc-settings-2”'+(tab!==2?' hidden':'')+'>'+
   '<h3>Datensicherung</h3>'+
   '<p style=”font-size:.86rem;color:var(--grau);margin-bottom:.8rem”>Im Team-Modus liegen die Daten auf eurem Vereinsserver – „Alles löschen” setzt den gemeinsamen Stand für ALLE zurück. <b style=”color:var(--ink)”>Lade regelmäßig ein Backup herunter</b> und bewahre es sicher auf (Mitgliederdaten = personenbezogene Daten!).</p>'+
   '<div style=”display:flex;gap:.5rem;flex-wrap:wrap”><button class=”btn btn-gruen” onclick=”backupExport()”>Backup herunterladen (JSON)</button><label class=”btn btn-hell” style=”cursor:pointer”>Backup importieren<input type=”file” accept=”.json” style=”display:none” onchange=”backupImport(this)”></label><button class=”btn btn-ghost” onclick=”allesLoeschen()”>Alles löschen</button>'+(DB.settings.abschlussBis?'<button class=”btn btn-hell” onclick=”abschlussAufheben()”>Jahresabschluss aufheben (bis '+dt(DB.settings.abschlussBis)+')</button>':'')+'</div>'+
@@ -1755,7 +1759,7 @@ function vEinstellungen(){
   '<p style=”font-size:.78rem;color:var(--grau);margin-top:.8rem”>Stand: '+DB.kontakte.length+' Kontakte · '+DB.mitglieder.length+' Mitgliedschaften · '+DB.buchungen.length+' Buchungen · '+DB.schreiben.length+' Schreiben</p>'+
   '</div>'+
   /* Panel 3: Beiträge & Fristen */
-  '<div class=”card hc-settings-panel” id=”hc-settings-3”'+(tab!==3?' style=”display:none”':'')+'>'+
+  '<div class=”card hc-settings-panel” id=”hc-settings-3”'+(tab!==3?' hidden':'')+'>'+
   '<h3>Beiträge, Fristen & Nummernkreise</h3>'+
   '<p style=”font-size:.82rem;color:var(--grau);margin-bottom:.5rem”>Bezeichnungen der Beitragsarten – so erscheinen sie überall in der App und auf Dokumenten:</p>'+
   '<div class=”frow”><div class=”field”><label>Bezeichnung „aktiv”</label><input id=”s_n_aktiv” value=”'+esc((s.artenNamen||{}).aktiv||ARTEN.aktiv)+'”></div><div class=”field”><label>Bezeichnung „standard”</label><input id=”s_n_standard” value=”'+esc((s.artenNamen||{}).standard||ARTEN.standard)+'”></div></div>'+
@@ -1768,7 +1772,7 @@ function vEinstellungen(){
   '<div class=”frow3”><div class=”field”><label>Mitgl.-Nr. Präfix</label><input id=”s_prefix” value=”'+esc(s.mnrPrefix)+'”></div><div class=”field”><label>Nächste Mitgl.-Nr.</label><input id=”s_mnext” type=”number” value=”'+s.mnrNext+'”></div><div class=”field”><label>Geschäftsjahr</label><input id=”s_jahr” type=”number” value=”'+s.geschaeftsjahr+'”></div></div>'+
   '</div>'+
   /* Panel 4: Rollen & Vorlagen */
-  '<div class=”card hc-settings-panel” id=”hc-settings-4”'+(tab!==4?' style=”display:none”':'')+'>'+
+  '<div class=”card hc-settings-panel” id=”hc-settings-4”'+(tab!==4?' hidden':'')+'>'+
   '<h3>Rollen & Anschreiben-Vorlagen</h3><p style=”font-size:.84rem;color:var(--grau);margin-bottom:.6rem”>Rollen: eine pro Zeile.</p><div class=”field”><textarea id=”s_rollen” style=”min-height:90px”>'+esc(s.rollen.join('\n'))+'</textarea></div>'+
   '<p style=”font-size:.8rem;color:var(--grau);margin:.8rem 0 .6rem”><b>Platzhalter:</b> {{vorname}} {{name}} {{mitgliedsnr}} {{art}} {{eintritt}} {{shirt}} {{posten}} {{betrag}} {{jahr}} {{faellig}} {{frist}} {{letztefrist}} {{kontoinhaber}} {{bank}} {{iban}} {{verwendungszweck}} {{grund}} {{beschluss}} {{vereinsname}} {{vorsitz}} {{kassenwart}} {{telefon}} {{instagram}} {{datum}}<br>Briefkopf, „MG Nr.” und Vorstands-Unterschriften werden automatisch ergänzt. Ein Zeilenumbruch im Betreff ergibt eine Unterzeile.</p>'+
   BRIEF_EDIT.map(function(t){var b=s.briefe[t];return '<details style=”margin-bottom:.6rem;border:1px solid var(--linie);border-radius:8px;padding:.5rem .8rem”><summary style=”cursor:pointer;font-weight:700;font-size:.88rem”>'+BRIEF_TITEL[t]+'</summary><div class=”field” style=”margin-top:.6rem”><label>Betreff</label><textarea id=”s_bf_'+t+'_betreff” style=”min-height:44px”>'+esc(b.betreff)+'</textarea></div><div class=”field”><label>Text</label><textarea id=”s_bf_'+t+'_text” style=”min-height:220px;font-size:.84rem”>'+esc(b.text)+'</textarea></div></details>';}).join('')+
@@ -1781,8 +1785,8 @@ function vEinstellungen(){
 }
 function einstellungenTab(n){
   window._setab=n;
-  document.querySelectorAll('.hc-settings-panel').forEach(function(p,i){p.style.display=i===n?'':'none';});
-  document.querySelectorAll('.hc-settings-tabs button').forEach(function(b,i){b.classList.toggle('on',i===n);});
+  document.querySelectorAll('.hc-settings-panel').forEach(function(p,i){p.hidden=(i!==n);});
+  document.querySelectorAll('.hc-stabs button').forEach(function(b,i){b.classList.toggle('on',i===n);});
 }
 function settingsSpeichern(){
   var s=DB.settings;s.vereinsname=val('s_name');s.rechtsform=val('s_form');s.steuernummer=val('s_stnr');s.gemeinnuetzig=val('s_gemein');s.finanzamt=val('s_fa');s.freistellung=val('s_frei');s.strasse=val('s_strasse');s.plz=val('s_plz');s.ort=val('s_ort');s.email=val('s_email');s.telefon=val('s_tel');s.instagram=val('s_insta');s.vorsitz=val('s_vorsitz');s.kassenwart=val('s_kasse');
