@@ -2606,13 +2606,13 @@ function cloudBootAlt(){
   if(!cloudAktiv()){cloudStatus();return;}
   try{CL.session=JSON.parse(localStorage.getItem(CS)||'null');}catch(e){}
   go('dashboard');
-  if(!CL.session){CL.lokal=true;cloudStatus();return;}
+  if(!CL.session){loginScreen();return;}
   ovl('<p style="text-align:center;color:var(--grau)">Verbinde mit dem Vereinsserver…</p>');
   cloudStart();
 }
 function cloudStart(){
   cloudRefresh().then(function(ok){
-    if(!ok&&!(CL.session&&CL.session.access_token)){CL.lokal=true;ovlZu();go('dashboard');cloudStatus();return;}
+    if(!ok&&!(CL.session&&CL.session.access_token)){loginScreen('Sitzung abgelaufen – bitte neu anmelden');return;}
     cloudProfilLaden().then(function(p){
       if(!p){CL.lokal=true;ovlZu();go('dashboard');cloudStatus();toast('Cloud-Profil nicht erreichbar – arbeite lokal',true);return;}
       if(!p.approved){warteScreen();return;}
