@@ -3623,9 +3623,7 @@ briefDrucken=function(typ,mid,extra){extra=extra||{};if(typ==='anhoerung'&&!extr
 /* Avoid intermediate writes inside the payment transaction. */
 zahlungErfassen=function(id,date,account,amount){var f=DB.buchungen.find(function(b){return b.id===id;});if(!f||f.status==='storniert'||f.status==='bezahlt'||gesperrtDatum(date)||!konto(account)||konto(account).typ!=='aktiva')return null;var rest=offenNoch(f),value=amount==null||amount===''?rest:Math.round(Number(amount)*100)/100;if(!Number.isFinite(value)||value<=0||value>rest+0.004)return null;var z=buche({datum:date,text:'Zahlungseingang: '+f.text,soll:account,haben:f.soll,betrag:value,kontaktId:f.kontaktId,mitgliedId:f.mitgliedId,art:'zahlung',forderungId:f.id});var paid=gesamtBezahlt(f.id);f.status=paid>=f.betrag-0.005?'bezahlt':'teilbezahlt';f.bezahltAm=f.status==='bezahlt'?date:null;f.zahlungBelegId=z.id;/* Legacy callers expect immediate persistence; new caller explicitly defers. */if(!HC.inPaymentTransaction)save();return z;};
 var hcPaymentInternal=hcPaymentCommit;hcPaymentCommit=function(){HC.inPaymentTransaction=true;try{hcPaymentInternal();}finally{HC.inPaymentTransaction=false;}};
-/* Payment-backed or posted records cannot be edited in place. */
-buchungBearbeiten=function(id){buchungDetail(id);toast('Gebuchte Daten bleiben erhalten. Für Änderungen die Korrektur-/Stornofunktion verwenden.');};
-buchungBearbSpeichern=function(id){toast('Gebuchte Daten können nicht direkt überschrieben werden. Bitte Korrektur / Storno verwenden.',true);};
+/* Editing uses the original implementation with field-level guards (amount/konten locked when bezahlt/storniert). */
 /* Storno retains both original and reciprocal record with an explicit link. */
 function hcEffective(b){return b.status!=='entwurf'&&(b.status!=='storniert'||!!b.hcStornoId);}
 saldo=function(nr){var k=konto(nr);if(!k)return 0;var value=DB.buchungen.filter(hcEffective).reduce(function(s,b){return s+(b.soll===nr?b.betrag:0)-(b.haben===nr?b.betrag:0);},0);return ['einnahme','verbindlichkeit','eigenkapital'].includes(k.typ)?-value:value;};
