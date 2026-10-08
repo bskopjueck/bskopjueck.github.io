@@ -795,7 +795,7 @@ function mahnliste(){
 }
 function vKonten(){
   var j=DB.settings.geschaeftsjahr;
-  C('<div class="toolbar"><button class="btn btn-rot" onclick="kontoForm()">+ Neues Konto</button><button class="btn btn-gruen" onclick="anfangsbestandDialog()">Anfangsbestände (Kasse/Bank)</button><button class="btn btn-hell" onclick="kontenplanDrucken()">📄 PDF</button><span style="color:var(--grau);font-size:.84rem">Salden gesamt & Geschäftsjahr '+j+'</span></div>'+
+  C('<div class="toolbar"><button class="btn btn-rot" onclick="kontoForm()">+ Neues Konto</button><button class="btn btn-gruen" onclick="anfangsbestandDialog()">Anfangsbestände (Kasse/Bank)</button><button class="btn btn-hell" onclick="kontenplanDrucken()">📄 PDF</button><button class="btn btn-hell" onclick="kontenplanImportDialog()">⬆ Importieren</button><button class="btn btn-hell" onclick="kontenplanExportDialog()">⬇ Exportieren</button><span style="color:var(--grau);font-size:.84rem">Salden gesamt & Geschäftsjahr '+j+'</span></div>'+
   '<div class="card"><div class="tbl-wrap"><table><tr><th>Nr.</th><th>Konto</th><th>Typ</th><th>Bereich</th><th class="num">Saldo '+j+'</th><th class="num">Saldo gesamt</th><th></th></tr>'+
   DB.konten.slice().sort(function(a,b){return a.nr.localeCompare(b.nr);}).map(function(k){var s=saldo(k.nr),sj=saldoJahr(k.nr,j);return '<tr><td><span class="mnr">'+k.nr+'</span></td><td><b>'+esc(k.name)+'</b></td><td><small>'+TYPEN[k.typ]+'</small></td><td><small>'+BEREICHE[k.bereich]+'</small></td><td class="num">'+eur(sj)+'</td><td class="num '+(s<0?'saldo-neg':'')+'">'+eur(s)+'</td><td class="akt"><button class="btn btn-gruen btn-sm" onclick="kontoblatt(\'' + k.nr + '\')">Kontoblatt</button> <button class="btn btn-hell btn-sm" onclick="kontoForm(\'' + k.nr + '\')">Bearbeiten</button></td></tr>';}).join('')+'</table></div></div>'+
   '<div class="hint" style="margin-top:1rem"><b>Bereiche (für e.V. / Gemeinnützigkeit):</b> Ideeller Bereich = Beiträge, Spenden, Eintrittsgelder · Zweckbetrieb = z. B. Vereinskleidung an Mitglieder · Wirtschaftlicher Geschäftsbetrieb = Sponsoring, Werbung, Verkauf an Dritte · Vermögensverwaltung = Kasse, Bank, Forderungen. Für den n.e.V. kannst du die Bereiche ignorieren – sie tun nichts weh.</div>');
@@ -813,6 +813,139 @@ function kontoSpeichern(nr){
   save();closeModal();toast('Konto gespeichert');vKonten();
 }
 function kontoLoeschen(nr){if(DB.buchungen.some(function(b){return b.soll===nr||b.haben===nr;})){toast('Konto hat Buchungen – kann nicht gelöscht werden',true);return;}if(!confirm('Konto '+nr+' löschen?'))return;DB.konten=DB.konten.filter(function(k){return k.nr!==nr;});save();closeModal();vKonten();}
+
+/* ---- Kontenplan Export / Import ---- */
+function kontenplanExportDialog(){
+  openModal('<h2>Kontenplan exportieren</h2>'+
+    '<p style="font-size:.86rem;color:var(--grau);margin-bottom:.8rem">JSON für Rückimport in BSK Op Jück · CSV zum Öffnen in Excel oder für ClubDesk.</p>'+
+    '<div class="mfoot"><button class="btn btn-hell" onclick="closeModal()">Abbrechen</button>'+
+    '<button class="btn btn-hell" onclick="kontenplanExportCSV()">📄 CSV (Excel / ClubDesk)</button>'+
+    '<button class="btn btn-gruen" onclick="kontenplanExportJSON()">⬇ JSON (Vollformat)</button></div>');
+}
+function kontenplanExportJSON(){
+  var data=JSON.stringify(DB.konten.slice().sort(function(a,b){return a.nr.localeCompare(b.nr);}),null,2);
+  var a=document.createElement('a');a.href='data:application/json;charset=utf-8,'+encodeURIComponent(data);
+  a.download='Kontenplan_'+(DB.settings.vereinsname||'export').replace(/\W+/g,'_')+'.json';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  toast('JSON exportiert · '+DB.konten.length+' Konten');
+}
+function kontenplanExportCSV(){
+  var rows=[['Nr.','Bezeichnung','Typ','Bereich']];
+  DB.konten.slice().sort(function(a,b){return a.nr.localeCompare(b.nr);}).forEach(function(k){rows.push([k.nr,k.name,k.typ,k.bereich]);});
+  var csv=rows.map(function(r){return r.map(function(c){return '"'+(c||'').replace(/"/g,'""')+'"';}).join(';');}).join('\r\n');
+  var a=document.createElement('a');a.href='data:text/csv;charset=utf-8,﻿'+encodeURIComponent(csv);
+  a.download='Kontenplan_'+(DB.settings.vereinsname||'export').replace(/\W+/g,'_')+'.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  toast('CSV exportiert · '+DB.konten.length+' Konten');
+}
+function kontenplanImportDialog(){
+  window._kpImport=null;
+  openModal('<h2>Kontenplan importieren</h2>'+
+    '<p style="font-size:.86rem;color:var(--grau);margin-bottom:.5rem">'+
+    'JSON-Datei (aus BSK-Export) oder CSV (Spalten: <code>Nr.;Bezeichnung;Typ;Bereich</code>).<br>'+
+    '<b>ClubDesk:</b> Buchhaltung → Kontenplan → Exportieren als CSV, dann hier hochladen.</p>'+
+    '<div class="field"><label>Datei auswählen <span style="font-size:.82rem;color:var(--grau)">(.json oder .csv)</span></label>'+
+    '<input type="file" id="kp_file" accept=".json,.csv,.txt" onchange="kontenplanImportLesen(this)"></div>'+
+    '<div id="kp_prev"></div>'+
+    '<div class="mfoot"><button class="btn btn-hell" onclick="closeModal()">Abbrechen</button></div>',true);
+}
+function kontenplanImportLesen(input){
+  var file=input.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var text=e.target.result.replace(/^﻿/,'');
+    var konten=[];var fehler='';
+    try{
+      if(file.name.match(/\.json$/i)){
+        konten=JSON.parse(text);
+        if(!Array.isArray(konten))throw new Error('JSON enthält kein Array');
+        konten=konten.filter(function(k){return k&&k.nr;});
+      }else{
+        var lines=text.split(/\r?\n/).filter(function(l){return l.trim();});
+        if(!lines.length)throw new Error('Datei ist leer');
+        var sep=lines[0].indexOf(';')>=0?';':',';
+        var hdr=lines[0].split(sep).map(function(h){return h.replace(/^"|"$/g,'').toLowerCase().trim();});
+        var iNr=hdr.findIndex(function(h){return /^nr|^konto|^nummer|^account|^code/.test(h);});
+        var iName=hdr.findIndex(function(h){return /bezeichn|name|title|beschr/.test(h);});
+        var iTyp=hdr.findIndex(function(h){return /^typ$|^type$|^art$/.test(h);});
+        var iBer=hdr.findIndex(function(h){return /bereich|sph|sphere|area/.test(h);});
+        if(iNr<0)iNr=0;if(iName<0)iName=Math.min(1,hdr.length-1);
+        var startLine=(/^\d/.test(lines[0].split(sep)[0].replace(/^"|"$/g,'').trim()))?0:1;
+        var typMap={aktiva:'aktiva',forderung:'forderung',verbindlichkeit:'verbindlichkeit',eigenkapital:'eigenkapital',einnahme:'einnahme',ausgabe:'ausgabe',
+          aktiv:'aktiva',asset:'aktiva',umlaufvermögen:'aktiva',anlagevermögen:'aktiva',receivable:'forderung',liability:'verbindlichkeit',equity:'eigenkapital',
+          income:'einnahme',revenue:'einnahme',ertrag:'einnahme',aufwand:'ausgabe',expense:'ausgabe',cost:'ausgabe'};
+        var berMap={ideell:'ideell',zweck:'zweck',wgb:'wgb',vermoegen:'vermoegen',neutral:'neutral',
+          'vermögen':'vermoegen','vermögensverwaltung':'vermoegen','zweckbetrieb':'zweck','wirtschaftlicher geschäftsbetrieb':'wgb'};
+        lines.slice(startLine).forEach(function(line){
+          var cols=[];var inq=false;var cur='';
+          for(var i=0;i<line.length;i++){var c=line[i];if(c==='"'){inq=!inq;}else if(c===sep&&!inq){cols.push(cur.trim());cur='';}else{cur+=c;}}cols.push(cur.trim());
+          var nr=(cols[iNr]||'').replace(/^"|"$/g,'').trim();
+          if(!nr)return;
+          var name=(cols[iName]||'').replace(/^"|"$/g,'').trim()||nr;
+          var rawTyp=(iTyp>=0?(cols[iTyp]||''):'').replace(/^"|"$/g,'').toLowerCase().trim();
+          var rawBer=(iBer>=0?(cols[iBer]||''):'').replace(/^"|"$/g,'').toLowerCase().trim();
+          konten.push({nr:nr,name:name,typ:typMap[rawTyp]||'ausgabe',bereich:berMap[rawBer]||'ideell'});
+        });
+      }
+    }catch(err){fehler=err.message;}
+    var el=document.getElementById('kp_prev');if(!el)return;
+    if(fehler){el.innerHTML='<div class="hint warn" style="margin-top:.5rem">Fehler beim Lesen: '+esc(fehler)+'</div>';window._kpImport=null;return;}
+    if(!konten.length){el.innerHTML='<div class="hint warn" style="margin-top:.5rem">Keine Konten in der Datei gefunden. Bitte Spalten prüfen (Nr.;Bezeichnung;Typ;Bereich).</div>';window._kpImport=null;return;}
+    window._kpImport=konten;
+    kontenplanImportVorschau(konten);
+  };
+  reader.readAsText(file,'utf-8');
+}
+function kontenplanImportVorschau(konten){
+  var neu=[],geaendert=[],gleich=[];
+  konten.forEach(function(k){
+    var ex=konto(k.nr);
+    if(!ex)neu.push(k);
+    else if(ex.name!==k.name||ex.typ!==k.typ||ex.bereich!==k.bereich)geaendert.push({alt:ex,neu:k});
+    else gleich.push(k);
+  });
+  var html='<div class="hint" style="margin-top:.8rem">'+konten.length+' Konten in der Datei &nbsp;·&nbsp; <b style="color:var(--gruen,#0E6B2F)">'+neu.length+' neu</b> &nbsp;·&nbsp; <b>'+geaendert.length+' geändert</b> &nbsp;·&nbsp; '+gleich.length+' bereits identisch</div>';
+  if(neu.length){
+    html+='<h4 style="margin:.8rem 0 .3rem;font-size:.9rem">Neue Konten (werden hinzugefügt)</h4>'+
+      '<div class="tbl-wrap" style="max-height:160px;overflow-y:auto"><table>'+
+      '<tr><th>Nr.</th><th>Bezeichnung</th><th>Typ</th><th>Bereich</th></tr>'+
+      neu.map(function(k){return '<tr><td><span class="mnr">'+esc(k.nr)+'</span></td><td>'+esc(k.name)+'</td>'+
+        '<td><small>'+esc(TYPEN[k.typ]||k.typ)+'</small></td><td><small>'+esc(BEREICHE[k.bereich]||k.bereich)+'</small></td></tr>';}).join('')+
+      '</table></div>';
+  }
+  if(geaendert.length){
+    html+='<h4 style="margin:.8rem 0 .3rem;font-size:.9rem">Geänderte Konten</h4>'+
+      '<div class="tbl-wrap" style="max-height:120px;overflow-y:auto"><table>'+
+      '<tr><th>Nr.</th><th>Bisheriger Name</th><th>Neuer Name</th><th>Typ</th></tr>'+
+      geaendert.map(function(x){return '<tr><td><span class="mnr">'+esc(x.alt.nr)+'</span></td>'+
+        '<td><span style="color:var(--grau)">'+esc(x.alt.name)+'</span></td>'+
+        '<td><b>'+esc(x.neu.name)+'</b></td>'+
+        '<td><small>'+esc(TYPEN[x.neu.typ]||x.neu.typ)+'</small></td></tr>';}).join('')+
+      '</table></div>';
+  }
+  var hasChanges=neu.length||geaendert.length;
+  if(!hasChanges)html+='<div class="hint" style="margin-top:.5rem">Alle Konten sind bereits identisch vorhanden – nichts zu importieren.</div>';
+  var btnNeu=neu.length?'<button class="btn btn-rot" onclick="kontenplanImportDurchfuehren(true)">+ Neue hinzufügen ('+neu.length+')</button>':'';
+  var btnAlle=hasChanges?'<button class="btn btn-gruen" onclick="kontenplanImportDurchfuehren(false)">Neue + geänderte übernehmen ('+(neu.length+geaendert.length)+')</button>':'';
+  html+='<div class="mfoot" style="margin-top:1rem;flex-wrap:wrap;gap:.5rem">'+
+    '<button class="btn btn-hell" onclick="closeModal()">Abbrechen</button>'+btnNeu+btnAlle+'</div>';
+  var el=document.getElementById('kp_prev');if(el)el.innerHTML=html;
+}
+function kontenplanImportDurchfuehren(nurNeue){
+  var konten=window._kpImport;if(!konten||!konten.length){toast('Keine Importdaten',true);return;}
+  var added=0,updated=0;
+  konten.forEach(function(k){
+    var ex=konto(k.nr);
+    if(!ex){DB.konten.push({nr:k.nr,name:k.name,typ:k.typ||'ausgabe',bereich:k.bereich||'ideell'});added++;}
+    else if(!nurNeue&&(ex.name!==k.name||ex.typ!==k.typ||ex.bereich!==k.bereich)){
+      ex.name=k.name;ex.typ=k.typ||ex.typ;ex.bereich=k.bereich||ex.bereich;updated++;
+    }
+  });
+  save();closeModal();window._kpImport=null;
+  if(!added&&!updated)toast('Keine Änderungen – alle Konten bereits vorhanden');
+  else toast(added+' Konten hinzugefügt'+(updated?' · '+updated+' aktualisiert':''));
+  vKonten();
+}
 
 /* ---- Kontoblatt (Drilldown je Konto) ---- */
 function kontoblatt(nr){
