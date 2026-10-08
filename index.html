@@ -2559,20 +2559,35 @@ async function pwReset(email){
 }
 function cloudEinstTab(){
   var e=document.getElementById('ct2');if(!e)return;
+  var akt=cloudAktiv(),ang=cloudAngemeldet();
   e.innerHTML=
   '<div class="card"><h3>E-Mail-Bestätigung deaktivieren</h3>'+
-  '<div class="hint warn">Damit kein Supabase-Email-Limit entsteht beim Anlegen von Konten: '+
+  '<div class="hint warn">Damit kein Supabase-Email-Limit entsteht: '+
   '<b><a href="https://supabase.com/dashboard/project/rtpdminvaxxjcuyuqpta/auth/providers" target="_blank">'+
-  'Supabase → Auth → Providers → Email → Confirm email: AUS</a></b>. '+
-  'Dann werden keine Bestätigungsmails verschickt.</div></div>'+
-  (cloudAktiv()?
-  '<div class="card"><h3>Verbunden ✓</h3><p style="color:var(--grau);font-size:.88rem">Server: '+cloudCfg().url+'</p>'+
-  '<button class="btn btn-ghost" onclick="cloudTrennen()">Verbindung trennen</button></div>'
+  'Supabase → Auth → Providers → Email → Confirm email: AUS</a></b></div></div>'+
+  (akt?
+  '<div class="card">'+
+  '<div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">'+
+  '<div style="flex:1"><h3 style="margin:0 0 .2rem">'+(ang?'✓ Angemeldet':'⚠ Nicht angemeldet')+'</h3>'+
+  '<p style="color:var(--grau);font-size:.84rem;margin:0">Server: '+cloudCfg().url+'</p></div>'+
+  '</div>'+
+  (!ang?'<div class="hint warn" style="margin:.7rem 0 .4rem">Sitzung abgelaufen oder noch nicht eingeloggt.</div>':'')+
+  '<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.6rem">'+
+  (!ang?'<button class="btn btn-rot" onclick="loginScreen()">Jetzt anmelden</button>':'')+
+  (ang?'<button class="btn btn-ghost" onclick="cloudLogout()">Abmelden</button>':'')+
+  '<button class="btn btn-ghost" onclick="cloudTrennen()">Server-Verbindung trennen</button>'+
+  '</div></div>'
   :
-  '<div class="card"><h3>Cloud-Verbindung</h3>'+
+  '<div class="card"><h3>Cloud-Verbindung einrichten</h3>'+
   '<div class="field"><label>Supabase Projekt-URL</label><input id="cl_url" placeholder="https://abcdefgh.supabase.co"></div>'+
   '<div class="field"><label>Anon Key</label><input id="cl_key" placeholder="eyJ..."></div>'+
-  '<button class="btn btn-rot" onclick="cloudVerbinden()">Verbinden</button></div>');
+  '<button class="btn btn-rot" onclick="cloudVerbinden()">Verbinden & anmelden</button></div>');
+}
+function cloudVerbinden(){
+  var url=val('cl_url').trim();var key=val('cl_key').trim();
+  if(!url||!key){toast('Bitte URL und Anon Key eingeben',true);return;}
+  try{localStorage.setItem(CK,JSON.stringify({url:url,anonKey:key}));}catch(e){}
+  CL.cfg=null;loginScreen();
 }
 
 function benutzerLaden(){
