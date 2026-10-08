@@ -1591,37 +1591,65 @@ function vSchriftverkehr(){
 /* ---------- Einstellungen (V2) ---------- */
 function vEinstellungen(){
   var s=DB.settings;
-  C('<div class="grid g2"><div><div class="card" style="margin-bottom:1rem"><h3>Vereinsdaten & Briefkopf</h3>'+
-  '<div class="field"><label>Vereinsname</label><input id="s_name" value="'+esc(s.vereinsname)+'"></div>'+
-  '<div class="frow"><div class="field"><label>Rechtsform</label><select id="s_form"><option'+(s.rechtsform==='n.e.V.'?' selected':'')+'>n.e.V.</option><option'+(s.rechtsform==='e.V.'?' selected':'')+'>e.V.</option></select></div><div class="field"><label>Steuernummer (optional)</label><input id="s_stnr" value="'+esc(s.steuernummer||'')+'"></div></div>'+
-  '<label class="check"><input type="checkbox" id="s_gemein" '+(s.gemeinnuetzig?'checked':'')+'> <span>Als gemeinnützig anerkannt (Zuwendungsbestätigungen nach § 10b EStG möglich)</span></label>'+
-  '<div class="frow"><div class="field"><label>Finanzamt</label><input id="s_fa" value="'+esc(s.finanzamt||'')+'" placeholder="Finanzamt Bergisch Gladbach"></div><div class="field"><label>Datum Freistellungsbescheid</label><input id="s_frei" type="date" value="'+esc(s.freistellung||'')+'"></div></div>'+
-  '<div class="field"><label>Straße</label><input id="s_strasse" value="'+esc(s.strasse)+'"></div><div class="frow"><div class="field"><label>PLZ</label><input id="s_plz" value="'+esc(s.plz)+'"></div><div class="field"><label>Ort</label><input id="s_ort" value="'+esc(s.ort)+'"></div></div>'+
-  '<div class="frow3"><div class="field"><label>E-Mail</label><input id="s_email" value="'+esc(s.email)+'"></div><div class="field"><label>Telefon</label><input id="s_tel" value="'+esc(s.telefon||'')+'"></div><div class="field"><label>Instagram</label><input id="s_insta" value="'+esc(s.instagram||'')+'"></div></div>'+
-  '<div class="field"><label>Vorstand / Verantwortliche (eine Person pro Zeile – erscheint im Briefkopf und als Unterschriften)</label><textarea id="s_vorstand" style="min-height:90px">'+esc((s.vorstand||[]).join('\n'))+'</textarea></div>'+
-  '<div class="frow"><div class="field"><label>1. Vorsitzende/r</label><input id="s_vorsitz" value="'+esc(s.vorsitz||'')+'"></div><div class="field"><label>Kassenwart/in</label><input id="s_kasse" value="'+esc(s.kassenwart||'')+'"></div></div></div>'+
-  '<div class="card" style="margin-bottom:1rem"><h3>Bankverbindung & SEPA</h3>'+
-  '<div class="frow"><div class="field"><label>Kontoinhaber</label><input id="s_inhaber" value="'+esc(s.kontoinhaber||'')+'" placeholder="z. B. Tom Hollinder oder Vereinsname"></div><div class="field"><label>Bank</label><input id="s_bank" value="'+esc(s.bank||'')+'" placeholder="C24 Bank"></div></div>'+
-  '<div class="frow"><div class="field"><label>IBAN</label><input id="s_iban" value="'+esc(s.iban||'')+'"></div><div class="field"><label>Gläubiger-ID (SEPA)</label><input id="s_glid" value="'+esc(s.glaeubigerId||'')+'" placeholder="DE98ZZZ09999999999"></div></div></div>'+
-  '<div class="card"><h3>Datensicherung</h3><p style="font-size:.86rem;color:var(--grau);margin-bottom:.8rem">Im Team-Modus liegen die Daten auf eurem Vereinsserver – „Alles löschen“ setzt den gemeinsamen Stand für ALLE zurück. <b style="color:var(--ink)">Lade regelmäßig ein Backup herunter</b> und bewahre es sicher auf (Mitgliederdaten = personenbezogene Daten!).</p>'+
-  '<div style="display:flex;gap:.5rem;flex-wrap:wrap"><button class="btn btn-gruen" onclick="backupExport()">Backup herunterladen (JSON)</button><label class="btn btn-hell" style="cursor:pointer">Backup importieren<input type="file" accept=".json" style="display:none" onchange="backupImport(this)"></label><button class="btn btn-ghost" onclick="allesLoeschen()">Alles löschen</button>'+(DB.settings.abschlussBis?'<button class="btn btn-hell" onclick="abschlussAufheben()">Jahresabschluss aufheben (bis '+dt(DB.settings.abschlussBis)+')</button>':'')+'</div>'+
-  '<div style="margin-top:.8rem;border-top:1px solid var(--linie);padding-top:.8rem"><b style="font-size:.84rem;color:var(--rot)">⚠ Buchungen eines Jahres löschen</b><p style="font-size:.83rem;color:var(--grau);margin:.25rem 0 .5rem">Entfernt alle Buchungen des gewählten Geschäftsjahres dauerhaft. Vorher Backup herunterladen!</p>'+(function(){var j=[];DB.buchungen.forEach(function(b){var y=jahrVon(b.datum);if(j.indexOf(y)<0)j.push(y);});j.sort().reverse();return j.length?'<div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap"><select id="s_lj" style="padding:.4rem .7rem;border:1px solid var(--linie);border-radius:6px;background:var(--card);color:var(--ink)">'+j.map(function(y){return '<option>'+y+'</option>';}).join('')+'</select><button class="btn btn-rot" onclick="buchungenJahrLoeschen()">Buchungen löschen</button></div>':'<p style="font-size:.83rem;color:var(--grau)">Noch keine Buchungen vorhanden.</p>';})()+'</div>'+
-  '<p style="font-size:.78rem;color:var(--grau);margin-top:.8rem">Stand: '+DB.kontakte.length+' Kontakte · '+DB.mitglieder.length+' Mitgliedschaften · '+DB.buchungen.length+' Buchungen · '+DB.schreiben.length+' Schreiben</p></div></div>'+
-  '<div><div class="card" style="margin-bottom:1rem"><h3>Beiträge, Fristen & Nummernkreise</h3>'+
-  '<p style="font-size:.82rem;color:var(--grau);margin-bottom:.5rem">Bezeichnungen der Beitragsarten – so erscheinen sie überall in der App und auf Dokumenten:</p>'+
-  '<div class="frow"><div class="field"><label>Bezeichnung „aktiv"</label><input id="s_n_aktiv" value="'+esc((s.artenNamen||{}).aktiv||ARTEN.aktiv)+'"></div><div class="field"><label>Bezeichnung „standard"</label><input id="s_n_standard" value="'+esc((s.artenNamen||{}).standard||ARTEN.standard)+'"></div></div>'+
-  '<div class="frow" style="margin-bottom:.6rem"><div class="field"><label>Bezeichnung „gold"</label><input id="s_n_gold" value="'+esc((s.artenNamen||{}).gold||ARTEN.gold)+'"></div><div class="field"><label>Bezeichnung „premium"</label><input id="s_n_premium" value="'+esc((s.artenNamen||{}).premium||ARTEN.premium)+'"></div></div>'+
-  '<div class="frow"><div class="field"><label>'+esc(ARTEN.aktiv)+' / Jahr</label><input id="s_b_aktiv" type="number" step="0.01" value="'+s.beitraege.aktiv+'"></div><div class="field"><label>Eintrittsgeld (einmalig)</label><input id="s_eintritt" type="number" step="0.01" value="'+s.eintrittsgeld+'"></div></div>'+
-  '<div class="frow3"><div class="field"><label>'+esc(ARTEN.standard)+'</label><input id="s_b_standard" type="number" step="0.01" value="'+s.beitraege.standard+'"></div><div class="field"><label>'+esc(ARTEN.gold)+'</label><input id="s_b_gold" type="number" step="0.01" value="'+s.beitraege.gold+'"></div><div class="field"><label>'+esc(ARTEN.premium)+'</label><input id="s_b_premium" type="number" step="0.01" value="'+s.beitraege.premium+'"></div></div>'+
-  '<div class="frow3"><div class="field"><label>Beitrag fällig am (MM-TT)</label><input id="s_faellig" value="'+esc(s.faelligkeit)+'" placeholder="01-31"></div><div class="field"><label>Erinnerung nach (Tage)</label><input id="s_erinn" type="number" value="'+s.erinnerungTage+'"></div><div class="field"><label>Mahnfrist (Tage)</label><input id="s_mahnfrist" type="number" value="'+s.mahnfristTage+'"></div></div>'+
-  '<div class="frow"><div class="field"><label>Standard beim Beitrag stellen</label>'+ratenSelect('s_ratenDef',s.ratenDefault)+'</div><div class="field"><label>Ratenabstand (Monate)</label><input id="s_ratenAbst" type="number" min="1" value="'+(s.ratenAbstand||2)+'"></div></div>'+
-  '<div class="field"><label>Zahlungsmodus im Vertrag (§ 2)</label><input id="s_raten" value="'+esc(s.raten)+'" placeholder="in drei Raten"></div>'+
-  '<div class="frow3"><div class="field"><label>Mitgl.-Nr. Präfix</label><input id="s_prefix" value="'+esc(s.mnrPrefix)+'"></div><div class="field"><label>Nächste Mitgl.-Nr.</label><input id="s_mnext" type="number" value="'+s.mnrNext+'"></div><div class="field"><label>Geschäftsjahr</label><input id="s_jahr" type="number" value="'+s.geschaeftsjahr+'"></div></div>'+
-  '<div class="mfoot" style="justify-content:flex-start"><button class="btn btn-rot" onclick="settingsSpeichern()">Einstellungen speichern</button></div></div>'+
-  '<div class="card"><h3>Rollen & Anschreiben-Vorlagen</h3><p style="font-size:.84rem;color:var(--grau);margin-bottom:.6rem">Rollen: eine pro Zeile.</p><div class="field"><textarea id="s_rollen" style="min-height:90px">'+esc(s.rollen.join('\n'))+'</textarea></div>'+
-  '<p style="font-size:.8rem;color:var(--grau);margin:.8rem 0 .6rem"><b>Platzhalter:</b> {{vorname}} {{name}} {{mitgliedsnr}} {{art}} {{eintritt}} {{shirt}} {{posten}} {{betrag}} {{jahr}} {{faellig}} {{frist}} {{letztefrist}} {{kontoinhaber}} {{bank}} {{iban}} {{verwendungszweck}} {{grund}} {{beschluss}} {{vereinsname}} {{vorsitz}} {{kassenwart}} {{telefon}} {{instagram}} {{datum}}<br>Briefkopf, „MG Nr.“ und Vorstands-Unterschriften werden automatisch ergänzt. Ein Zeilenumbruch im Betreff ergibt eine Unterzeile.</p>'+
-  BRIEF_EDIT.map(function(t){var b=s.briefe[t];return '<details style="margin-bottom:.6rem;border:1px solid var(--linie);border-radius:8px;padding:.5rem .8rem"><summary style="cursor:pointer;font-weight:700;font-size:.88rem">'+BRIEF_TITEL[t]+'</summary><div class="field" style="margin-top:.6rem"><label>Betreff</label><textarea id="s_bf_'+t+'_betreff" style="min-height:44px">'+esc(b.betreff)+'</textarea></div><div class="field"><label>Text</label><textarea id="s_bf_'+t+'_text" style="min-height:220px;font-size:.84rem">'+esc(b.text)+'</textarea></div></details>';}).join('')+
-  '<div class="mfoot" style="justify-content:flex-start"><button class="btn btn-rot" onclick="settingsSpeichern()">Speichern</button><button class="btn btn-ghost" onclick="if(confirm(\'Alle Vorlagen auf Standard zurücksetzen?\')){DB.settings.briefe=defaultBriefe();save();vEinstellungen();}">Vorlagen zurücksetzen</button></div></div></div></div>');
+  var tab=window._setab||0;
+  C('<div class=”tabs hc-settings-tabs”>'+
+  ['Verein & Briefkopf','Bank & SEPA','Datensicherung','Beiträge & Fristen','Rollen & Vorlagen'].map(function(t,i){return '<button class=”'+(i===tab?'on':'')+'” onclick=”einstellungenTab('+i+')”>'+t+'</button>';}).join('')+
+  '</div><div class=”hc-settings-panels”>'+
+  /* Panel 0: Verein & Briefkopf */
+  '<div class=”card hc-settings-panel” id=”hc-settings-0”'+(tab!==0?' style=”display:none”':'')+'>'+
+  '<h3>Vereinsdaten & Briefkopf</h3>'+
+  '<div class=”field”><label>Vereinsname</label><input id=”s_name” value=”'+esc(s.vereinsname)+'”></div>'+
+  '<div class=”frow”><div class=”field”><label>Rechtsform</label><select id=”s_form”><option'+(s.rechtsform==='n.e.V.'?' selected':'')+'>n.e.V.</option><option'+(s.rechtsform==='e.V.'?' selected':'')+'>e.V.</option></select></div><div class=”field”><label>Steuernummer (optional)</label><input id=”s_stnr” value=”'+esc(s.steuernummer||'')+'”></div></div>'+
+  '<label class=”check”><input type=”checkbox” id=”s_gemein” '+(s.gemeinnuetzig?'checked':'')+'> <span>Als gemeinnützig anerkannt (Zuwendungsbestätigungen nach § 10b EStG möglich)</span></label>'+
+  '<div class=”frow”><div class=”field”><label>Finanzamt</label><input id=”s_fa” value=”'+esc(s.finanzamt||'')+'” placeholder=”Finanzamt Bergisch Gladbach”></div><div class=”field”><label>Datum Freistellungsbescheid</label><input id=”s_frei” type=”date” value=”'+esc(s.freistellung||'')+'”></div></div>'+
+  '<div class=”field”><label>Straße</label><input id=”s_strasse” value=”'+esc(s.strasse)+'”></div><div class=”frow”><div class=”field”><label>PLZ</label><input id=”s_plz” value=”'+esc(s.plz)+'”></div><div class=”field”><label>Ort</label><input id=”s_ort” value=”'+esc(s.ort)+'”></div></div>'+
+  '<div class=”frow3”><div class=”field”><label>E-Mail</label><input id=”s_email” value=”'+esc(s.email)+'”></div><div class=”field”><label>Telefon</label><input id=”s_tel” value=”'+esc(s.telefon||'')+'”></div><div class=”field”><label>Instagram</label><input id=”s_insta” value=”'+esc(s.instagram||'')+'”></div></div>'+
+  '<div class=”field”><label>Vorstand / Verantwortliche (eine Person pro Zeile – erscheint im Briefkopf und als Unterschriften)</label><textarea id=”s_vorstand” style=”min-height:90px”>'+esc((s.vorstand||[]).join('\n'))+'</textarea></div>'+
+  '<div class=”frow”><div class=”field”><label>1. Vorsitzende/r</label><input id=”s_vorsitz” value=”'+esc(s.vorsitz||'')+'”></div><div class=”field”><label>Kassenwart/in</label><input id=”s_kasse” value=”'+esc(s.kassenwart||'')+'”></div></div>'+
+  '</div>'+
+  /* Panel 1: Bank & SEPA */
+  '<div class=”card hc-settings-panel” id=”hc-settings-1”'+(tab!==1?' style=”display:none”':'')+'>'+
+  '<h3>Bankverbindung & SEPA</h3>'+
+  '<div class=”frow”><div class=”field”><label>Kontoinhaber</label><input id=”s_inhaber” value=”'+esc(s.kontoinhaber||'')+'” placeholder=”z. B. Tom Hollinder oder Vereinsname”></div><div class=”field”><label>Bank</label><input id=”s_bank” value=”'+esc(s.bank||'')+'” placeholder=”C24 Bank”></div></div>'+
+  '<div class=”frow”><div class=”field”><label>IBAN</label><input id=”s_iban” value=”'+esc(s.iban||'')+'”></div><div class=”field”><label>Gläubiger-ID (SEPA)</label><input id=”s_glid” value=”'+esc(s.glaeubigerId||'')+'” placeholder=”DE98ZZZ09999999999”></div></div>'+
+  '</div>'+
+  /* Panel 2: Datensicherung */
+  '<div class=”card hc-settings-panel” id=”hc-settings-2”'+(tab!==2?' style=”display:none”':'')+'>'+
+  '<h3>Datensicherung</h3>'+
+  '<p style=”font-size:.86rem;color:var(--grau);margin-bottom:.8rem”>Im Team-Modus liegen die Daten auf eurem Vereinsserver – „Alles löschen” setzt den gemeinsamen Stand für ALLE zurück. <b style=”color:var(--ink)”>Lade regelmäßig ein Backup herunter</b> und bewahre es sicher auf (Mitgliederdaten = personenbezogene Daten!).</p>'+
+  '<div style=”display:flex;gap:.5rem;flex-wrap:wrap”><button class=”btn btn-gruen” onclick=”backupExport()”>Backup herunterladen (JSON)</button><label class=”btn btn-hell” style=”cursor:pointer”>Backup importieren<input type=”file” accept=”.json” style=”display:none” onchange=”backupImport(this)”></label><button class=”btn btn-ghost” onclick=”allesLoeschen()”>Alles löschen</button>'+(DB.settings.abschlussBis?'<button class=”btn btn-hell” onclick=”abschlussAufheben()”>Jahresabschluss aufheben (bis '+dt(DB.settings.abschlussBis)+')</button>':'')+'</div>'+
+  '<div style=”margin-top:.8rem;border-top:1px solid var(--linie);padding-top:.8rem”><b style=”font-size:.84rem;color:var(--rot)”>⚠ Buchungen eines Jahres löschen</b><p style=”font-size:.83rem;color:var(--grau);margin:.25rem 0 .5rem”>Entfernt alle Buchungen des gewählten Geschäftsjahres dauerhaft. Vorher Backup herunterladen!</p>'+(function(){var j=[];DB.buchungen.forEach(function(b){var y=jahrVon(b.datum);if(j.indexOf(y)<0)j.push(y);});j.sort().reverse();return j.length?'<div style=”display:flex;gap:.5rem;align-items:center;flex-wrap:wrap”><select id=”s_lj” style=”padding:.4rem .7rem;border:1px solid var(--linie);border-radius:6px;background:var(--card);color:var(--ink)”>'+j.map(function(y){return '<option>'+y+'</option>';}).join('')+'</select><button class=”btn btn-rot” onclick=”buchungenJahrLoeschen()”>Buchungen löschen</button></div>':'<p style=”font-size:.83rem;color:var(--grau)”>Noch keine Buchungen vorhanden.</p>';})()+'</div>'+
+  '<p style=”font-size:.78rem;color:var(--grau);margin-top:.8rem”>Stand: '+DB.kontakte.length+' Kontakte · '+DB.mitglieder.length+' Mitgliedschaften · '+DB.buchungen.length+' Buchungen · '+DB.schreiben.length+' Schreiben</p>'+
+  '</div>'+
+  /* Panel 3: Beiträge & Fristen */
+  '<div class=”card hc-settings-panel” id=”hc-settings-3”'+(tab!==3?' style=”display:none”':'')+'>'+
+  '<h3>Beiträge, Fristen & Nummernkreise</h3>'+
+  '<p style=”font-size:.82rem;color:var(--grau);margin-bottom:.5rem”>Bezeichnungen der Beitragsarten – so erscheinen sie überall in der App und auf Dokumenten:</p>'+
+  '<div class=”frow”><div class=”field”><label>Bezeichnung „aktiv”</label><input id=”s_n_aktiv” value=”'+esc((s.artenNamen||{}).aktiv||ARTEN.aktiv)+'”></div><div class=”field”><label>Bezeichnung „standard”</label><input id=”s_n_standard” value=”'+esc((s.artenNamen||{}).standard||ARTEN.standard)+'”></div></div>'+
+  '<div class=”frow” style=”margin-bottom:.6rem”><div class=”field”><label>Bezeichnung „gold”</label><input id=”s_n_gold” value=”'+esc((s.artenNamen||{}).gold||ARTEN.gold)+'”></div><div class=”field”><label>Bezeichnung „premium”</label><input id=”s_n_premium” value=”'+esc((s.artenNamen||{}).premium||ARTEN.premium)+'”></div></div>'+
+  '<div class=”frow”><div class=”field”><label>'+esc(ARTEN.aktiv)+' / Jahr</label><input id=”s_b_aktiv” type=”number” step=”0.01” value=”'+s.beitraege.aktiv+'”></div><div class=”field”><label>Eintrittsgeld (einmalig)</label><input id=”s_eintritt” type=”number” step=”0.01” value=”'+s.eintrittsgeld+'”></div></div>'+
+  '<div class=”frow3”><div class=”field”><label>'+esc(ARTEN.standard)+'</label><input id=”s_b_standard” type=”number” step=”0.01” value=”'+s.beitraege.standard+'”></div><div class=”field”><label>'+esc(ARTEN.gold)+'</label><input id=”s_b_gold” type=”number” step=”0.01” value=”'+s.beitraege.gold+'”></div><div class=”field”><label>'+esc(ARTEN.premium)+'</label><input id=”s_b_premium” type=”number” step=”0.01” value=”'+s.beitraege.premium+'”></div></div>'+
+  '<div class=”frow3”><div class=”field”><label>Beitrag fällig am (MM-TT)</label><input id=”s_faellig” value=”'+esc(s.faelligkeit)+'” placeholder=”01-31”></div><div class=”field”><label>Erinnerung nach (Tage)</label><input id=”s_erinn” type=”number” value=”'+s.erinnerungTage+'”></div><div class=”field”><label>Mahnfrist (Tage)</label><input id=”s_mahnfrist” type=”number” value=”'+s.mahnfristTage+'”></div></div>'+
+  '<div class=”frow”><div class=”field”><label>Standard beim Beitrag stellen</label>'+ratenSelect('s_ratenDef',s.ratenDefault)+'</div><div class=”field”><label>Ratenabstand (Monate)</label><input id=”s_ratenAbst” type=”number” min=”1” value=”'+(s.ratenAbstand||2)+'”></div></div>'+
+  '<div class=”field”><label>Zahlungsmodus im Vertrag (§ 2)</label><input id=”s_raten” value=”'+esc(s.raten)+'” placeholder=”in drei Raten”></div>'+
+  '<div class=”frow3”><div class=”field”><label>Mitgl.-Nr. Präfix</label><input id=”s_prefix” value=”'+esc(s.mnrPrefix)+'”></div><div class=”field”><label>Nächste Mitgl.-Nr.</label><input id=”s_mnext” type=”number” value=”'+s.mnrNext+'”></div><div class=”field”><label>Geschäftsjahr</label><input id=”s_jahr” type=”number” value=”'+s.geschaeftsjahr+'”></div></div>'+
+  '</div>'+
+  /* Panel 4: Rollen & Vorlagen */
+  '<div class=”card hc-settings-panel” id=”hc-settings-4”'+(tab!==4?' style=”display:none”':'')+'>'+
+  '<h3>Rollen & Anschreiben-Vorlagen</h3><p style=”font-size:.84rem;color:var(--grau);margin-bottom:.6rem”>Rollen: eine pro Zeile.</p><div class=”field”><textarea id=”s_rollen” style=”min-height:90px”>'+esc(s.rollen.join('\n'))+'</textarea></div>'+
+  '<p style=”font-size:.8rem;color:var(--grau);margin:.8rem 0 .6rem”><b>Platzhalter:</b> {{vorname}} {{name}} {{mitgliedsnr}} {{art}} {{eintritt}} {{shirt}} {{posten}} {{betrag}} {{jahr}} {{faellig}} {{frist}} {{letztefrist}} {{kontoinhaber}} {{bank}} {{iban}} {{verwendungszweck}} {{grund}} {{beschluss}} {{vereinsname}} {{vorsitz}} {{kassenwart}} {{telefon}} {{instagram}} {{datum}}<br>Briefkopf, „MG Nr.” und Vorstands-Unterschriften werden automatisch ergänzt. Ein Zeilenumbruch im Betreff ergibt eine Unterzeile.</p>'+
+  BRIEF_EDIT.map(function(t){var b=s.briefe[t];return '<details style=”margin-bottom:.6rem;border:1px solid var(--linie);border-radius:8px;padding:.5rem .8rem”><summary style=”cursor:pointer;font-weight:700;font-size:.88rem”>'+BRIEF_TITEL[t]+'</summary><div class=”field” style=”margin-top:.6rem”><label>Betreff</label><textarea id=”s_bf_'+t+'_betreff” style=”min-height:44px”>'+esc(b.betreff)+'</textarea></div><div class=”field”><label>Text</label><textarea id=”s_bf_'+t+'_text” style=”min-height:220px;font-size:.84rem”>'+esc(b.text)+'</textarea></div></details>';}).join('')+
+  '<div class=”mfoot” style=”justify-content:flex-start”><button class=”btn btn-ghost” onclick=”if(confirm(\'Alle Vorlagen auf Standard zurücksetzen?\')){DB.settings.briefe=defaultBriefe();save();vEinstellungen();}”>Vorlagen zurücksetzen</button></div>'+
+  '</div>'+
+  '</div>'+
+  '<div class=”hc-commands hc-settings-save”>'+
+  '<button class=”btn btn-gruen” onclick=”settingsSpeichern()”>Änderungen speichern</button>'+
+  '</div>');
+}
+function einstellungenTab(n){
+  window._setab=n;
+  document.querySelectorAll('.hc-settings-panel').forEach(function(p,i){p.style.display=i===n?'':'none';});
+  document.querySelectorAll('.hc-settings-tabs button').forEach(function(b,i){b.classList.toggle('on',i===n);});
 }
 function settingsSpeichern(){
   var s=DB.settings;s.vereinsname=val('s_name');s.rechtsform=val('s_form');s.steuernummer=val('s_stnr');s.gemeinnuetzig=val('s_gemein');s.finanzamt=val('s_fa');s.freistellung=val('s_frei');s.strasse=val('s_strasse');s.plz=val('s_plz');s.ort=val('s_ort');s.email=val('s_email');s.telefon=val('s_tel');s.instagram=val('s_insta');s.vorsitz=val('s_vorsitz');s.kassenwart=val('s_kasse');
@@ -1819,7 +1847,9 @@ function tabShow(prefix,id){document.querySelectorAll('[id]').forEach(function(e
 
 function kontaktForm(id,cb){
   var k=id?kontakt(id):{typ:'person'};
-  openModal('<h2>'+(id?'Kontakt bearbeiten – '+esc(kName(id)):'Neuer Kontakt')+'</h2>'+
+  closeModal();
+  C('<div class="toolbar"><button class="btn btn-hell" onclick="vKontakte()">← Zurück</button></div>'+
+  '<section class="card hc-record"><h2>'+(id?'Kontakt bearbeiten – '+esc(kName(id)):'Neuer Kontakt')+'</h2>'+
   tabsHTML([['kf_stamm','Stammdaten'],['kf_adr','Adresse & Kontakt'],['kf_pers','Persönliches & Bank'],['kf_rollen','Rollen & Notizen']],'kf_')+
   '<div id="kf_stamm">'+
     '<div class="field"><label>Typ</label><select id="k_typ" onchange="document.getElementById(\'kf_firmaFelder\').style.display=this.value===\'firma\'?\'\':\'none\'"><option value="person"'+(k.typ==='person'?' selected':'')+'>Person</option><option value="firma"'+(k.typ==='firma'?' selected':'')+'>Firma / Sponsor</option></select></div>'+
@@ -1845,7 +1875,7 @@ function kontaktForm(id,cb){
       :'<div class="hint" style="margin:0 0 .6rem">Ämter können nur <b>aktiven Mitgliedern</b> zugewiesen werden'+(id?'.':' – erst als Mitglied aufnehmen.')+'</div>')+
     '<div id="amt_liste"></div>'+
     '<div class="field"><label>Notizen</label><textarea id="k_notiz" style="min-height:110px">'+esc(k.notizen||'')+'</textarea></div></div>'+
-    '<div class="mfoot">'+(id?'<button class="btn btn-ghost" onclick="kontaktLoeschen(\'' + id + '\')">Löschen</button>':'')+'<button class="btn btn-hell" onclick="closeModal()">Abbrechen</button><button class="btn btn-rot" onclick="kontaktSpeichern(\'' + (id||'') + '\')">Speichern</button></div>',true);
+    '<div class="mfoot">'+(id?'<button class="btn btn-ghost" onclick="kontaktLoeschen(\'' + id + '\')">Löschen</button>':'')+'<button class="btn btn-hell" onclick="vKontakte()">Abbrechen</button><button class="btn btn-rot" onclick="kontaktSpeichern(\'' + (id||'') + '\')">Speichern</button></div></section>');
   window._kcb=cb;
   (k.aemter||[]).slice().sort(function(a,b){return (a.von||'').localeCompare(b.von||'');}).forEach(function(a){amtRow(a.rolle,a.von,a.bis);});
 }
@@ -1861,7 +1891,7 @@ function kontaktSpeichern(id){
     if(dup&&!confirm('Achtung: „'+kName(dup.id)+'“ ('+dup.nr+') existiert bereits. Trotzdem als neuen Kontakt anlegen?'))return;}
   var k;
   if(id){k=kontakt(id);Object.assign(k,d);}else{k=Object.assign({id:uid(),nr:nextKnr(),erstellt:heute()},d);DB.kontakte.push(k);}
-  save();closeModal();toast('Kontakt gespeichert');
+  save();toast('Kontakt gespeichert');
   if(window._kcb){var cb=window._kcb;window._kcb=null;cb(k);}else if(current==='kontakte')vKontakte();
 }
 
@@ -3466,8 +3496,52 @@ saldoJahr=function(nr,year){var k=konto(nr);if(!k)return 0;var value=DB.buchunge
 stornoAusfuehren=function(id,reason){var original=DB.buchungen.find(function(b){return b.id===id;});if(!original||original.status==='storniert'||original.art==='storno'||!reason.trim())return;if(gesperrtDatum(original.datum)||gesperrtDatum(heute())){toast('Betroffene Periode ist abgeschlossen.',true);return;}if(gesamtBezahlt(original.id)>0){toast('Bitte zuerst zugehörige Zahlungen korrigieren. Angezahlte Forderungen bleiben erhalten.',true);return;}var result=hcTransact(function(){var reverse=buche({datum:heute(),text:'STORNO '+original.belegnr+': '+reason,soll:original.haben,haben:original.soll,betrag:original.betrag,kontaktId:original.kontaktId,mitgliedId:original.mitgliedId,art:'storno'});reverse.stornoFuerId=original.id;original.hcStornoId=reverse.id;original.status='storniert';original.stornoGrund=reason;original.storniertAm=heute();if(original.forderungId){var f=DB.buchungen.find(function(b){return b.id===original.forderungId;});if(f&&f.status!=='storniert'){var paid=gesamtBezahlt(f.id);f.status=paid>=f.betrag-0.005?'bezahlt':paid>0?'teilbezahlt':'offen';f.bezahltAm=f.status==='bezahlt'?f.bezahltAm:null;}}hcAudit('Storno',original.id,reason);return reverse;});if(result){closeModal();toast('Storno gespeichert');buchungDetail(original.id);}};
 var hcFinalBrief=briefHTML;briefHTML=function(typ,mid,extra){var html=hcFinalBrief(typ,mid,extra);if(typ==='beitritt')html=html.replace(/Bitte überweise den Gesamtbetrag von [^<]+ innerhalb von 14 Tagen auf unser Konto:/,'Bitte überweise die jeweils offenen Raten zu den oben genannten Fälligkeiten auf unser Konto:');return html;};
 /* Financial summary for contributions uses remaining amounts, including partial payments. */
-function vBeitraege(){var groups={};DB.buchungen.filter(function(b){return ['beitrag','umlage'].includes(b.art)&&b.status!=='storniert';}).forEach(function(b){var key=b.art==='beitrag'?'Jahresbeiträge '+b.jahr:(b.umlage||'Sonderforderung');if(!groups[key])groups[key]={type:b.art,year:b.jahr,tag:b.umlage,rows:[],total:0,paid:0,open:0};var g=groups[key];g.rows.push(b);g.total+=b.betrag;g.paid+=gesamtBezahlt(b.id);g.open+=offenNoch(b);});var keys=Object.keys(groups).sort().reverse();C('<div class="toolbar">'+hcBtn('+ Jahresbeiträge stellen','jahresbeitraegeStellen()',true)+hcBtn('+ Sonderforderung','umlageDialog()')+hcBtn('Beitragsübersicht drucken','beitragsuebersichtDrucken()')+'</div><div class="card hc-tablecard"><div class="tbl-wrap"><table><thead><tr><th>Lauf / Forderung</th><th>Mitglieder</th><th class="num">Soll</th><th class="num">Bezahlt</th><th class="num">Offen</th><th></th></tr></thead><tbody>'+keys.map(function(key){var g=groups[key],ids=new Set(g.rows.map(function(b){return b.mitgliedId;}));return '<tr><td>'+esc(key)+'</td><td>'+ids.size+'</td><td class="num">'+eur(g.total)+'</td><td class="num">'+eur(g.paid)+'</td><td class="num">'+eur(g.open)+'</td><td>'+hcBtn('Details','hcContributionDetails('+JSON.stringify(key)+')')+'</td></tr>';}).join('')+(keys.length?'':'<tr><td colspan="6" class="empty">Noch keine Beitragsläufe oder Sonderforderungen.</td></tr>')+'</tbody></table></div></div>');HC.contributionGroups=groups;}
+function vBeitraege(){var groups={};DB.buchungen.filter(function(b){return ['beitrag','umlage'].includes(b.art)&&b.status!=='storniert';}).forEach(function(b){var key=b.art==='beitrag'?'Jahresbeiträge '+b.jahr:(b.umlage||'Sonderforderung');if(!groups[key])groups[key]={type:b.art,year:b.jahr,tag:b.umlage,rows:[],total:0,paid:0,open:0};var g=groups[key];g.rows.push(b);g.total+=b.betrag;g.paid+=gesamtBezahlt(b.id);g.open+=offenNoch(b);});var keys=Object.keys(groups).sort().reverse();C('<div class="toolbar">'+hcBtn('+ Jahresbeiträge stellen','jahresbeitraegeStellen()',true)+hcBtn('+ Sonderforderung','umlageDialog()')+hcBtn('Beitragsübersicht drucken','beitragsuebersichtDrucken()')+'</div><div class="card hc-tablecard"><div class="tbl-wrap"><table><thead><tr><th>Lauf / Forderung</th><th>Mitglieder</th><th class="num">Soll</th><th class="num">Bezahlt</th><th class="num">Offen</th><th></th></tr></thead><tbody>'+keys.map(function(key){var g=groups[key],ids=new Set(g.rows.map(function(b){return b.mitgliedId;}));return '<tr><td>'+esc(key)+'</td><td>'+ids.size+'</td><td class="num">'+eur(g.total)+'</td><td class="num">'+eur(g.paid)+'</td><td class="num">'+eur(g.open)+'</td><td>'+hcBtn('Details','hcContributionDetails('+JSON.stringify(key)+')')+(g.type==='beitrag'?' '+hcBtn('Jahr löschen','jahreskorrekturSeite('+Number(g.year)+')'):'')+'</td></tr>';}).join('')+(keys.length?'':'<tr><td colspan="6" class="empty">Noch keine Beitragsläufe oder Sonderforderungen.</td></tr>')+'</tbody></table></div></div>');HC.contributionGroups=groups;}
 function hcContributionDetails(key){var g=HC.contributionGroups[key];if(!g)return;openModal('<h2>'+esc(key)+'</h2><div class="tbl-wrap"><table><tr><th>Mitglied</th><th>Fälligkeit</th><th class="num">Soll</th><th class="num">Bezahlt</th><th class="num">Offen</th><th></th></tr>'+g.rows.map(function(b){return '<tr><td>'+esc(kName(b.kontaktId))+'</td><td>'+dt(b.faellig||b.datum)+'</td><td class="num">'+eur(b.betrag)+'</td><td class="num">'+eur(gesamtBezahlt(b.id))+'</td><td class="num">'+eur(offenNoch(b))+'</td><td>'+hcBtn('Mitgliedsakte','closeModal();HC.accountYear='+Number(b.jahr||DB.settings.geschaeftsjahr)+';HC.memberTab=\'md_konto\';mitgliedDetail(\''+hcId(b.mitgliedId)+'\')')+'</td></tr>';}).join('')+'</table></div>',true);}
+function jahreskorrekturSeite(year){
+  var beitraege=DB.buchungen.filter(function(b){return b.art==='beitrag'&&Number(b.jahr)===year&&b.status!=='storniert';});
+  var count=beitraege.length;
+  var summe=beitraege.reduce(function(a,b){return a+b.betrag;},0);
+  var bezahlt=beitraege.reduce(function(a,b){return a+gesamtBezahlt(b.id);},0);
+  C('<div class="toolbar"><button class="btn btn-hell" onclick="vBeitraege()">← Zurück</button></div>'+
+    '<section class="card hc-record" style="max-width:760px">'+
+    '<h2>Beitragsjahr korrigieren</h2>'+
+    '<h3 style="margin-bottom:.6rem">Jahresbeiträge '+year+' stornieren</h3>'+
+    '<p style="font-size:.88rem;color:var(--grau);margin-bottom:1rem">Alle Beitragsbuchungen dieses Jahres werden als Storno-Gegenbuchungen rückgängig gemacht. Die ursprünglichen Belege bleiben als storniert nachvollziehbar erhalten. Das Beitragsjahr '+year+' kann danach für alle betroffenen Mitglieder erneut gestellt werden.</p>'+
+    '<div class="hint" style="margin-bottom:1rem"><b>'+count+' Buchung'+(count===1?'':'en')+'</b> · Soll gesamt '+eur(summe)+' · davon bezahlt '+eur(bezahlt)+'</div>'+
+    '<div class="hint" style="background:#e8f3ff;border-left-color:#0875e9;margin-bottom:1.2rem"><b>Hinweis:</b> Es werden keine Bankrückbuchungen veranlasst. Nach der Korrektur kann das Beitragsjahr '+year+' neu gestellt werden.</div>'+
+    '<div class="field"><label>Grund der Korrektur <b style="color:var(--rot)">*</b></label><textarea id="jk_grund" placeholder="z. B. falscher Jahresbetrag wurde gestellt" style="min-height:80px"></textarea></div>'+
+    '<div class="mfoot">'+
+    '<button class="btn btn-hell" onclick="vBeitraege()">Abbrechen</button>'+
+    hcBtn('Alle Beiträge '+year+' stornieren','jahreskorrekturDurchfuehren('+year+')',false,'hc-danger')+
+    '</div></section>');
+}
+function jahreskorrekturDurchfuehren(year){
+  var grund=(document.getElementById('jk_grund')||{}).value||'';
+  if(!grund.trim()){toast('Bitte Grund der Korrektur eingeben',true);return;}
+  var beitraege=DB.buchungen.filter(function(b){return b.art==='beitrag'&&Number(b.jahr)===year&&b.status!=='storniert';});
+  if(!beitraege.length){toast('Keine aktiven Beiträge für '+year+' gefunden',true);return;}
+  var gesperrt=beitraege.filter(function(b){return gesperrtDatum(b.datum);});
+  if(gesperrt.length){toast('Gesperrte Periode betroffen: '+gesperrt.map(function(b){return b.belegnr;}).join(', '),true);return;}
+  var fehler=null;
+  hcTransact(function(){
+    beitraege.forEach(function(orig){
+      var rev=buche({datum:heute(),text:'STORNO '+orig.belegnr+': Jahreskorrektur '+year+' – '+grund,soll:orig.haben,haben:orig.soll,betrag:orig.betrag,kontaktId:orig.kontaktId,mitgliedId:orig.mitgliedId,art:'storno'});
+      rev.stornoFuerId=orig.id;
+      orig.hcStornoId=rev.id;
+      orig.status='storniert';
+      orig.stornoGrund=grund+' (Jahreskorrektur '+year+')';
+      orig.storniertAm=heute();
+    });
+    DB.mitglieder.forEach(function(m){
+      if(m.beitragsjahre){var idx=m.beitragsjahre.indexOf(year);if(idx>=0)m.beitragsjahre.splice(idx,1);}
+    });
+    hcAudit('JahreskorrekturBeitraege',year,grund);
+  });
+  save();
+  toast('Jahresbeiträge '+year+' wurden storniert – Beitragsjahr kann neu gestellt werden');
+  vBeitraege();
+}
 /* Correct full-detail return context for member tabs. */
 var hcMemberPageDetail=mitgliedDetail;mitgliedDetail=function(id){current='mitglieder';document.querySelectorAll('aside a.nav').forEach(function(a){a.classList.toggle('active',a.dataset.view==='mitglieder');});hcMemberPageDetail(id);};
 buchungStornoMitGrund=function(id){var b=DB.buchungen.find(function(x){return x.id===id;});if(!b||b.status==='storniert'||b.art==='storno')return;if(gesperrtDatum(b.datum)||gesperrtDatum(heute())){toast('Die betroffene Periode ist abgeschlossen.',true);return;}if(gesamtBezahlt(id)>0){toast('Bitte zuerst zugehörige Zahlungen korrigieren. Angezahlte Forderungen bleiben erhalten.',true);return;}openModal('<h2>Buchung korrigieren / stornieren</h2><div class="detail"><dl><dt>Beleg</dt><dd>'+esc(b.belegnr)+'</dd><dt>Text</dt><dd>'+esc(b.text)+'</dd><dt>Betrag</dt><dd>'+eur(b.betrag)+'</dd></dl></div><div class="field" style="margin-top:17px"><label for="storno_grund">Stornogrund *</label><textarea id="storno_grund" required></textarea></div><div class="hint" style="margin-top:13px">Das Original bleibt erhalten. Eine verknüpfte Gegenbuchung gleicht den Betrag aus.</div><div class="mfoot">'+hcBtn('Abbrechen','closeModal()')+hcBtn('Storno durchführen','stornoAusfuehren(\''+hcId(id)+'\',val(\'storno_grund\'))',false,'hc-danger')+'</div>');};
