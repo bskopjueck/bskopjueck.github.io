@@ -31,11 +31,17 @@ button{font-family:var(--body)}
 .ic{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 /* MAIN */
 .main{flex:1;min-width:0;display:flex;flex-direction:column}
-.topbar{background:linear-gradient(#fafbfc,#e8edf2);border-bottom:1px solid #cdd5dd;padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:1rem;position:sticky;top:0;z-index:20;height:46px;min-height:46px}
-.topbar h1{font-size:17px;font-weight:700;color:#18212b;letter-spacing:-.01em}
-.topbar .sub{font-size:12px;color:var(--grau)}
-.content{padding:24px 30px;max-width:1280px;width:100%}
-.burger{display:none;background:none;border:none;font-size:1.4rem;cursor:pointer;color:#18212b}
+.topbar{background:linear-gradient(#fafbfc,#e8edf2);border-bottom:1px solid #cdd5dd;padding:0 16px 0 20px;display:flex;align-items:center;gap:0;position:sticky;top:0;z-index:20;height:46px;min-height:46px}
+.topmenu{display:flex;gap:2px;margin:0 8px}
+.topmenu span{padding:5px 9px;font-size:12px;color:#4a5967;cursor:default;border-radius:3px}
+.topmenu span:hover{background:#ebeef2}
+.topright{margin-left:auto;font-size:12px;color:var(--grau);white-space:nowrap}
+.page-hdr{padding:22px 30px 0;display:flex;align-items:flex-start;justify-content:space-between;gap:1rem}
+.page-hdr-text h1{font-size:26px;font-weight:700;color:#18212b;letter-spacing:-.02em;margin:0 0 3px}
+.page-hdr-text .sub{font-size:13px;color:var(--grau);margin:0 0 16px}
+.page-hdr-actions{display:flex;gap:8px;align-items:center;flex-shrink:0;padding-top:4px}
+.content{padding:4px 30px 30px;max-width:1280px;width:100%}
+.burger{display:none;background:none;border:none;font-size:1.4rem;cursor:pointer;color:#18212b;margin-right:8px}
 /* CARDS / GRID */
 .grid{display:grid;gap:14px}
 .g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:repeat(2,1fr)}
@@ -171,7 +177,10 @@ td.akt{white-space:nowrap}
   .side{position:fixed;left:-260px;z-index:90;transition:left .3s;height:100vh}
   .side.open{left:0;box-shadow:8px 0 30px rgba(0,0,0,.3)}
   .burger{display:block}
-  .content{padding:1rem}
+  .topmenu{display:none}
+  .page-hdr{padding:14px 16px 0}
+  .page-hdr-text h1{font-size:20px}
+  .content{padding:4px 16px 24px}
 }
 #cloudOvl{position:fixed;inset:0;background:linear-gradient(160deg,var(--hc-brand),var(--hc-sidebar-nav));display:none;align-items:center;justify-content:center;z-index:200;padding:1rem}
 .ovl-card{background:#fff;border-radius:4px;padding:28px;width:100%;max-width:420px;box-shadow:0 12px 40px rgba(0,0,0,.35)}
@@ -241,13 +250,22 @@ th.sortable{cursor:pointer;user-select:none}th.sortable:hover{color:var(--gruen-
 
   <div class="main">
     <div class="topbar">
-      <div style="display:flex;align-items:center;gap:.8rem">
-        <button class="burger" onclick="document.getElementById(\'side\').classList.toggle(\'open\')">&#9776;</button>
-        <div><h1 id="viewTitle">Dashboard</h1><div class="sub" id="viewSub"></div></div>
+      <button class="burger" onclick="document.getElementById('side').classList.toggle('open')">&#9776;</button>
+      <div class="topmenu">
+        <span>Datei</span>
+        <span>Bearbeiten</span>
+        <span>Ansicht</span>
+        <span>Extras</span>
+        <span>Hilfe</span>
       </div>
-      <div style="display:flex;gap:.5rem">
-        <button class="btn btn-gruen" onclick="go(\'aufnahme\')"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Mitglied aufnehmen</button>
+      <div class="topright">Geschäftsjahr <b id="gjLabel">2026</b> &nbsp;·&nbsp; BSK Op Jück</div>
+    </div>
+    <div class="page-hdr">
+      <div class="page-hdr-text">
+        <h1 id="viewTitle">Arbeitsübersicht</h1>
+        <p class="sub" id="viewSub">Auf einen Blick</p>
       </div>
+      <div class="page-hdr-actions" id="pageActions"></div>
     </div>
     <div class="content" id="content"></div>
   </div>
@@ -377,7 +395,7 @@ function zahlungErfassen(forderungId,datum,zahlungskonto,betrag){
    NAVIGATION
    ============================================================ */
 var VIEWS={
-  dashboard:['Dashboard','Auf einen Blick'],
+  dashboard:['Arbeitsübersicht','BSK Op Jück · Auf einen Blick'],
   aufnahme:['Mitgliedschaft erfassen','Neues Mitglied aufnehmen – mit automatischer Buchung'],
   mitglieder:['Mitgliederliste','Alle Mitgliedschaften'],
   kontakte:['Kontakte & Partner','Personen, Firmen, Sponsoren – mit Rollen'],
@@ -401,8 +419,9 @@ var current='dashboard';
 function go(v,arg){
   current=v;
   document.querySelectorAll('.side a.nav').forEach(function(a){a.classList.toggle('active',a.dataset.view===v);});
-  document.getElementById('viewTitle').textContent=VIEWS[v][0];
-  document.getElementById('viewSub').textContent=VIEWS[v][1];
+  if(VIEWS[v]){document.getElementById('viewTitle').textContent=VIEWS[v][0];document.getElementById('viewSub').textContent=VIEWS[v][1];}
+  document.getElementById('pageActions').innerHTML='';
+  var gjEl=document.getElementById('gjLabel');if(gjEl&&DB)gjEl.textContent=DB.settings.geschaeftsjahr;
   document.getElementById('side').classList.remove('open');
   window.scrollTo(0,0);
   ({dashboard:vDashboard,aufnahme:vAufnahme,mitglieder:vMitglieder,kontakte:vKontakte,schriftverkehr:vSchriftverkehr,'import':vImport,lastschrift:vLastschrift,kalender:vKalender,buchen:vBuchen,journal:vJournal,offen:vOffen,beitraege:vBeitraege,konten:vKonten,belege:vBelege,auswertung:vAuswertung,cloud:vCloud,einstellungen:vEinstellungen,portal_news:vPortalNews,sponsoren:vSponsoren})[v](arg);
@@ -440,7 +459,7 @@ function vDashboard(){
       '<div class="card" style="margin-bottom:1rem"><h3>Mitglieder nach Art</h3><table>'+Object.keys(ARTEN).map(function(a){return '<tr><td>'+ARTEN[a]+'</td><td class="num">'+(byArt[a]||0)+'</td><td class="num">'+eur(DB.settings.beitraege[a])+' / Jahr</td></tr>';}).join('')+'</table></div>'+
       mahnwesenKarte()+'<div class="card" style="margin-bottom:1rem"><h3>Nächste Termine <button class="btn btn-hell btn-sm" onclick="go(\'kalender\')">Kalender</button></h3>'+naechsteTermineHTML(5)+'</div>'+
       '<div class="card"><h3>Schnellzugriff</h3><div style="display:flex;flex-wrap:wrap;gap:.5rem">'+
-        '<button class="btn btn-rot" onclick="go(\'aufnahme\')">Mitglied aufnehmen</button>'+
+        '<button class="btn btn-gruen" onclick="go(\'aufnahme\')">Mitglied aufnehmen</button>'+
         '<button class="btn btn-gruen" onclick="go(\'buchen\')">Buchung erfassen</button>'+
         '<button class="btn btn-hell" onclick="go(\'offen\')">Zahlung erfassen</button>'+
         '<button class="btn btn-hell" onclick="jahresbeitraegeStellen()">Jahresbeiträge '+j+' stellen</button>'+
