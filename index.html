@@ -2,56 +2,56 @@
 <html lang="de">
 <head><!-- frame-runtime --><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>BSK Op Jück – Vereinsverwaltung</title>
+<title>HollinClub – BSK Op Jück</title>
 <meta name="robots" content="noindex,nofollow">
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-:root{--rot:#CF0000;--rot-dunkel:#A30000;--gruen:#0E6B2F;--gruen-dunkel:#0A4D22;--tint:#F2F8F4;--ink:#101812;--grau:#5B6660;--linie:#E4EAE6;--gelb:#F5B700;--r:10px;--shadow:0 4px 18px rgba(10,77,34,.08);--display:'Archivo',system-ui,sans-serif;--body:'Inter',system-ui,sans-serif}
+:root{--rot:#CF0000;--rot-dunkel:#A30000;--gruen:#0674ec;--gruen-dunkel:#0558c2;--tint:#f0f6ff;--ink:#18212b;--grau:#627180;--linie:#dbe3eb;--gelb:#F5B700;--r:4px;--shadow:0 1px 4px rgba(0,0,0,.08);--display:'Inter',system-ui,sans-serif;--body:'Inter',system-ui,sans-serif;--hc-sidebar:#222e37;--hc-sidebar-nav:#1c252d;--hc-nav-text:#d8e0e6;--hc-nav-group:#8fa3b1;--hc-active:#0875e9;--hc-brand:#202b33}
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%}
-body{font-family:var(--body);color:var(--ink);background:#F4F6F5;font-size:14.5px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body{font-family:var(--body);color:var(--ink);background:#f8fafc;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
 h1,h2,h3,h4{font-family:var(--display);letter-spacing:-.01em;line-height:1.15}
 a{color:var(--gruen)}
 button{font-family:var(--body)}
 .app{display:flex;min-height:100vh}
 /* SIDEBAR */
-.side{width:240px;background:linear-gradient(180deg,var(--gruen-dunkel),var(--gruen));color:#fff;padding:1.2rem 0;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;flex-shrink:0}
-.side .brand{display:flex;align-items:center;gap:.7rem;padding:0 1.2rem 1.2rem;border-bottom:1px solid rgba(255,255,255,.15)}
-.side .brand .mark{width:40px;height:40px;border-radius:9px;background:var(--rot);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:900;font-size:.8rem;color:#fff}
-.side .brand b{font-family:var(--display);font-size:1rem;display:block;line-height:1.1}
-.side .brand small{font-size:.7rem;opacity:.75}
-.side nav{padding:.8rem 0;flex:1;overflow-y:auto}
-.side .grp{font-size:.66rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;opacity:.55;padding:.9rem 1.2rem .3rem}
-.side a.nav{display:flex;align-items:center;gap:.6rem;padding:.55rem 1.2rem;color:#fff;text-decoration:none;font-weight:600;font-size:.9rem;opacity:.85;border-left:3px solid transparent;cursor:pointer}
-.side a.nav:hover{opacity:1;background:rgba(255,255,255,.07)}
-.side a.nav.active{opacity:1;background:rgba(0,0,0,.18);border-left-color:var(--rot)}
-.side a.nav .ic{width:18px;height:18px;flex-shrink:0}
-.side .foot{padding:1rem 1.2rem;font-size:.72rem;opacity:.6;border-top:1px solid rgba(255,255,255,.15)}
+.side{width:220px;background:var(--hc-sidebar);color:var(--hc-nav-text);padding:0;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;flex-shrink:0}
+.side .brand{display:flex;align-items:center;gap:9px;padding:0 18px;height:46px;background:var(--hc-brand);border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0}
+.side .brand .hc-mono{width:26px;height:26px;object-fit:contain}
+.side .brand .hc-name{font-size:15px;font-weight:700;color:#fff;letter-spacing:-.01em}
+.side nav{padding:10px 0;flex:1;overflow-y:auto}
+.side .grp{font-size:10.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--hc-nav-group);padding:16px 18px 5px}
+.side a.nav{display:flex;align-items:center;gap:11px;padding:9px 18px;color:var(--hc-nav-text);text-decoration:none;font-weight:400;font-size:13px;opacity:.9;border-left:3px solid transparent;cursor:pointer;transition:background .12s}
+.side a.nav:hover{opacity:1;background:rgba(255,255,255,.06)}
+.side a.nav.active{opacity:1;background:var(--hc-active);color:#fff;border-left-color:transparent}
+.side a.nav .ic{width:14px;height:14px;flex-shrink:0;opacity:.8}
+.side a.nav.active .ic{opacity:1}
+.side .foot{padding:10px 18px;font-size:11px;color:var(--hc-nav-group);border-top:1px solid rgba(255,255,255,.08)}
 .ic{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 /* MAIN */
 .main{flex:1;min-width:0;display:flex;flex-direction:column}
-.topbar{background:#fff;border-bottom:1px solid var(--linie);padding:.8rem 1.6rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;position:sticky;top:0;z-index:20}
-.topbar h1{font-size:1.25rem;font-weight:800;color:var(--gruen-dunkel)}
-.topbar .sub{font-size:.8rem;color:var(--grau)}
-.content{padding:1.6rem;max-width:1280px;width:100%}
-.burger{display:none;background:none;border:none;font-size:1.6rem;cursor:pointer;color:var(--gruen-dunkel)}
+.topbar{background:linear-gradient(#fafbfc,#e8edf2);border-bottom:1px solid #cdd5dd;padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:1rem;position:sticky;top:0;z-index:20;height:46px;min-height:46px}
+.topbar h1{font-size:17px;font-weight:700;color:#18212b;letter-spacing:-.01em}
+.topbar .sub{font-size:12px;color:var(--grau)}
+.content{padding:24px 30px;max-width:1280px;width:100%}
+.burger{display:none;background:none;border:none;font-size:1.4rem;cursor:pointer;color:#18212b}
 /* CARDS / GRID */
-.grid{display:grid;gap:1rem}
+.grid{display:grid;gap:14px}
 .g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:repeat(2,1fr)}
 @media(max-width:1100px){.g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:1fr 1fr}}
 @media(max-width:760px){.g4,.g3,.g2{grid-template-columns:1fr}}
-.card{background:#fff;border:1px solid var(--linie);border-radius:var(--r);box-shadow:var(--shadow);padding:1.2rem 1.3rem}
-.card h3{font-size:1rem;font-weight:800;color:var(--gruen-dunkel);margin-bottom:.8rem;display:flex;align-items:center;justify-content:space-between;gap:.6rem}
-.kpi b{font-family:var(--display);font-size:1.7rem;font-weight:900;color:var(--gruen-dunkel);display:block;line-height:1.1}
+.card{background:#fff;border:1px solid var(--linie);border-radius:var(--r);box-shadow:var(--shadow);padding:17px 16px}
+.card h3{font-size:14px;font-weight:600;color:#18212b;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:.6rem}
+.kpi b{font-size:24px;font-weight:700;color:#18212b;display:block;line-height:1.1}
 .kpi b.rot{color:var(--rot)}
-.kpi span{font-size:.78rem;color:var(--grau);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.kpi span{font-size:12px;color:var(--grau);font-weight:500}
 /* BUTTONS */
-.btn{display:inline-flex;align-items:center;gap:.4rem;padding:.55rem 1rem;border-radius:7px;border:1px solid transparent;font-weight:700;font-size:.86rem;cursor:pointer;text-decoration:none;white-space:nowrap;transition:background .15s}
-.btn-rot{background:var(--rot);color:#fff}.btn-rot:hover{background:var(--rot-dunkel)}
-.btn-gruen{background:var(--gruen);color:#fff}.btn-gruen:hover{background:var(--gruen-dunkel)}
-.btn-hell{background:#fff;color:var(--gruen-dunkel);border-color:var(--linie)}.btn-hell:hover{background:var(--tint)}
-.btn-sm{padding:.35rem .7rem;font-size:.78rem}
+.btn{display:inline-flex;align-items:center;gap:.35rem;padding:0 13px;height:33px;border-radius:3px;border:1px solid #cad5e1;font-weight:500;font-size:13px;cursor:pointer;text-decoration:none;white-space:nowrap;transition:background .12s;background:#fff;color:#253544}
+.btn-rot{background:var(--rot);color:#fff;border-color:var(--rot)}.btn-rot:hover{background:var(--rot-dunkel);border-color:var(--rot-dunkel)}
+.btn-gruen,.btn-primary{background:var(--gruen);color:#fff;border-color:var(--gruen)}.btn-gruen:hover,.btn-primary:hover{background:var(--gruen-dunkel);border-color:var(--gruen-dunkel)}
+.btn-hell{background:#fff;color:#253544;border-color:#cad5e1}.btn-hell:hover{background:#f5f8fb}
+.btn-sm{padding:0 10px;height:29px;font-size:12px}
 .btn-ghost{background:none;color:var(--grau);border-color:transparent}.btn-ghost:hover{color:var(--rot)}
 .btn .ic{width:16px;height:16px}
 .btn:disabled{opacity:.5;cursor:not-allowed}
@@ -60,48 +60,48 @@ button{font-family:var(--body)}
 table{width:100%;border-collapse:collapse;font-size:.86rem}
 th{text-align:left;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--grau);padding:.55rem .7rem;border-bottom:2px solid var(--linie);white-space:nowrap}
 td{padding:.6rem .7rem;border-bottom:1px solid var(--linie);vertical-align:middle}
-tr:hover td{background:#FAFCFA}
+tr:hover td{background:#f5f8fc}
 td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 td.akt{white-space:nowrap}
 .tag{display:inline-block;padding:.18rem .55rem;border-radius:999px;font-size:.7rem;font-weight:700;letter-spacing:.04em}
 .tag-gruen{background:#E3F3E8;color:var(--gruen-dunkel)}.tag-rot{background:#FBE3E3;color:var(--rot-dunkel)}.tag-gelb{background:#FFF3CC;color:#7A5B00}.tag-grau{background:#EEF0EF;color:var(--grau)}.tag-blau{background:#E3ECFB;color:#1F3F8A}
 .mnr{font-family:var(--display);font-weight:800;color:var(--gruen-dunkel)}
 /* FORMS */
-.field{margin-bottom:.8rem}
-.field label{display:block;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--grau);margin-bottom:.25rem}
-.field input,.field select,.field textarea{width:100%;padding:.55rem .7rem;border:1.5px solid var(--linie);border-radius:7px;font-family:var(--body);font-size:.9rem;background:#fff}
-.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--gruen);box-shadow:0 0 0 3px rgba(14,107,47,.12)}
-.field textarea{min-height:70px;resize:vertical}
-.frow{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}.frow3{grid-template-columns:1fr 1fr 1fr}
+.field{margin-bottom:13px}
+.field label{display:block;font-size:12px;font-weight:500;color:var(--grau);margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;padding:7px 10px;border:1px solid var(--linie);border-radius:3px;font-family:var(--body);font-size:13px;background:#fff;height:34px}
+.field textarea{height:auto;min-height:70px}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--gruen);box-shadow:0 0 0 2px rgba(6,116,236,.15)}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:13px}.frow3{grid-template-columns:1fr 1fr 1fr}
 @media(max-width:640px){.frow,.frow3{grid-template-columns:1fr}}
-.check{display:flex;align-items:flex-start;gap:.5rem;font-size:.86rem;cursor:pointer;margin:.4rem 0}
-.check input{width:16px;height:16px;margin-top:.15rem;accent-color:var(--rot)}
-.toolbar{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-bottom:1rem}
-.toolbar input[type=search]{padding:.5rem .8rem;border:1.5px solid var(--linie);border-radius:7px;font-family:var(--body);font-size:.88rem;min-width:220px}
-.toolbar select{padding:.5rem .6rem;border:1.5px solid var(--linie);border-radius:7px;font-family:var(--body);font-size:.86rem}
-.hint{background:var(--tint);border-left:4px solid var(--gruen);padding:.7rem .9rem;border-radius:6px;font-size:.84rem;color:var(--grau);margin-bottom:1rem}
+.check{display:flex;align-items:flex-start;gap:.5rem;font-size:13px;cursor:pointer;margin:.4rem 0}
+.check input{width:14px;height:14px;margin-top:.15rem;accent-color:var(--gruen)}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.toolbar input[type=search]{padding:6px 10px;border:1px solid var(--linie);border-radius:3px;font-family:var(--body);font-size:13px;min-width:200px;height:33px}
+.toolbar select{padding:6px 9px;border:1px solid var(--linie);border-radius:3px;font-family:var(--body);font-size:13px;height:33px}
+.hint{background:var(--tint);border-left:3px solid var(--gruen);padding:10px 14px;border-radius:3px;font-size:13px;color:var(--grau);margin-bottom:13px}
 .hint b{color:var(--ink)}
 .warn{background:#FFF7E0;border-left-color:var(--gelb)}
-.empty{text-align:center;color:var(--grau);padding:2rem 1rem;font-size:.9rem}
+.empty{text-align:center;color:var(--grau);padding:2rem 1rem;font-size:13px}
 /* MODAL */
-.modal{position:fixed;inset:0;background:rgba(6,40,20,.55);z-index:100;display:none;align-items:flex-start;justify-content:center;padding:4vh 16px;overflow-y:auto}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:none;align-items:flex-start;justify-content:center;padding:4vh 16px;overflow-y:auto}
 .modal.show{display:flex}
-.mbox{background:#fff;border-radius:12px;width:100%;max-width:720px;padding:1.6rem;position:relative;margin-bottom:4vh;box-shadow:0 24px 60px rgba(0,0,0,.3)}
+.mbox{background:#fff;border-radius:4px;width:100%;max-width:720px;padding:22px;position:relative;margin-bottom:4vh;box-shadow:0 8px 30px rgba(0,0,0,.2)}
 .mbox.wide{max-width:920px}
-.mbox h2{font-size:1.25rem;font-weight:800;color:var(--gruen-dunkel);margin-bottom:1rem;padding-right:2rem}
-.mclose{position:absolute;top:.9rem;right:1rem;background:var(--tint);border:none;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:1rem}
-.mfoot{display:flex;justify-content:flex-end;gap:.6rem;margin-top:1.2rem;padding-top:1rem;border-top:1px solid var(--linie);flex-wrap:wrap}
+.mbox h2{font-size:16px;font-weight:700;color:#18212b;margin-bottom:14px;padding-right:2rem}
+.mclose{position:absolute;top:14px;right:14px;background:#f0f2f4;border:none;width:30px;height:30px;border-radius:3px;cursor:pointer;font-size:14px}
+.mfoot{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--linie);flex-wrap:wrap}
 /* WIZARD */
 .steps{display:flex;gap:.4rem;margin-bottom:1.4rem}
 .steps div{flex:1;text-align:center;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--grau);padding:.5rem .3rem;border-bottom:3px solid var(--linie)}
-.steps div.on{color:var(--rot);border-bottom-color:var(--rot)}
-.steps div.done{color:var(--gruen);border-bottom-color:var(--gruen)}
-.sum{background:var(--tint);border-radius:8px;padding:1rem 1.1rem;font-size:.9rem}
-.sum .row{display:flex;justify-content:space-between;padding:.35rem 0;border-bottom:1px dashed var(--linie)}
-.sum .row:last-child{border-bottom:none;font-weight:800}
-.pick{border:1.5px solid var(--linie);border-radius:8px;max-height:220px;overflow-y:auto}
-.pick div{padding:.55rem .8rem;cursor:pointer;border-bottom:1px solid var(--linie);font-size:.88rem}
-.pick div:hover{background:var(--tint)}.pick div.sel{background:#E3F3E8;font-weight:700}
+.steps div.on{color:var(--gruen);border-bottom-color:var(--gruen)}
+.steps div.done{color:var(--gruen-dunkel);border-bottom-color:var(--gruen-dunkel)}
+.sum{background:var(--tint);border-radius:3px;padding:13px 15px;font-size:13px}
+.sum .row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--linie)}
+.sum .row:last-child{border-bottom:none;font-weight:700}
+.pick{border:1px solid var(--linie);border-radius:3px;max-height:220px;overflow-y:auto}
+.pick div{padding:8px 11px;cursor:pointer;border-bottom:1px solid var(--linie);font-size:13px}
+.pick div:hover{background:var(--tint)}.pick div.sel{background:#e8f3ff;font-weight:600;color:var(--gruen)}
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--gruen-dunkel);color:#fff;padding:.7rem 1.2rem;border-radius:999px;font-weight:600;font-size:.88rem;z-index:200;opacity:0;transition:opacity .25s;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.3)}
 .toast.show{opacity:1}
 .toast.err{background:var(--rot)}
@@ -109,7 +109,7 @@ td.akt{white-space:nowrap}
 .detail dt{color:var(--grau);font-weight:600}
 .tabs{display:flex;gap:.3rem;border-bottom:2px solid var(--linie);margin-bottom:1rem}
 .tabs button{background:none;border:none;padding:.6rem .9rem;font-weight:700;font-size:.86rem;color:var(--grau);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px}
-.tabs button.on{color:var(--rot);border-bottom-color:var(--rot)}
+.tabs button.on{color:var(--gruen);border-bottom-color:var(--gruen)}
 .saldo-pos{color:var(--gruen-dunkel);font-weight:700}.saldo-neg{color:var(--rot);font-weight:700}
 /* PRINT */
 #belegPrint{display:none}
@@ -173,8 +173,8 @@ td.akt{white-space:nowrap}
   .burger{display:block}
   .content{padding:1rem}
 }
-#cloudOvl{position:fixed;inset:0;background:linear-gradient(160deg,var(--gruen-dunkel),#0E2A16);display:none;align-items:center;justify-content:center;z-index:200;padding:1rem}
-.ovl-card{background:#fff;border-radius:16px;padding:2rem;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+#cloudOvl{position:fixed;inset:0;background:linear-gradient(160deg,var(--hc-brand),var(--hc-sidebar-nav));display:none;align-items:center;justify-content:center;z-index:200;padding:1rem}
+.ovl-card{background:#fff;border-radius:4px;padding:28px;width:100%;max-width:420px;box-shadow:0 12px 40px rgba(0,0,0,.35)}
 th.sortable{cursor:pointer;user-select:none}th.sortable:hover{color:var(--gruen-dunkel)}
 .warnb{display:inline-block;background:#FFF3CC;color:#7A5B00;border-radius:999px;font-size:.68rem;font-weight:800;padding:.1rem .45rem;cursor:help}
 /* BRIEF V2 */
@@ -196,45 +196,47 @@ th.sortable{cursor:pointer;user-select:none}th.sortable:hover{color:var(--gruen-
 @media print{.beleg{border:none!important;border-radius:0!important;margin:0!important;max-width:100%!important}}
 </style>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#153D1F">
+<meta name="theme-color" content="#222e37">
 <link rel="apple-touch-icon" href="icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="BSK Verein">
+<meta name="apple-mobile-web-app-title" content="HollinClub">
 </head>
 <body>
 <div class="app">
   <aside class="side" id="side">
     <div class="brand">
-      <div class="mark">BSK</div>
-      <div><b id="brandName">BSK Op Jück</b><small id="brandForm">Vereinsverwaltung</small></div>
+      <img class="hc-mono" src="hc-mono.png" alt="HC">
+      <span class="hc-name">HollinClub</span>
     </div>
     <nav>
       <div class="grp">Übersicht</div>
-      <a class="nav" data-view="dashboard"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="5" rx="1.5"/><rect x="13" y="11" width="8" height="10" rx="1.5"/><rect x="3" y="14" width="8" height="7" rx="1.5"/></svg>Dashboard</a>
+      <a class="nav" data-view="dashboard"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="5" rx="1.5"/><rect x="13" y="11" width="8" height="10" rx="1.5"/><rect x="3" y="14" width="8" height="7" rx="1.5"/></svg>Arbeitsübersicht</a>
+      <a class="nav" data-view="aufgaben"><svg class="ic" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Aufgaben</a>
       <div class="grp">Mitglieder</div>
-      <a class="nav" data-view="aufnahme"><svg class="ic" viewBox="0 0 24 24"><circle cx="10" cy="8" r="3.5"/><path d="M3.5 20c.6-3.6 3.2-5.5 6.5-5.5 1.3 0 2.5.3 3.5.9"/><path d="M18 14v6M15 17h6"/></svg>Mitgliedschaft erfassen</a>
-      <a class="nav" data-view="mitglieder"><svg class="ic" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 19.5c.6-3.4 3-5.2 6-5.2s5.4 1.8 6 5.2"/><circle cx="17" cy="9" r="2.6"/><path d="M15.5 13.6c2.8.1 5 1.8 5.6 4.9"/></svg>Mitgliederliste</a>
-      <a class="nav" data-view="kalender"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Kalender & Termine</a>
+      <a class="nav" data-view="mitglieder"><svg class="ic" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 19.5c.6-3.4 3-5.2 6-5.2s5.4 1.8 6 5.2"/><circle cx="17" cy="9" r="2.6"/><path d="M15.5 13.6c2.8.1 5 1.8 5.6 4.9"/></svg>Mitgliederübersicht</a>
+      <a class="nav" data-view="aufnahme"><svg class="ic" viewBox="0 0 24 24"><circle cx="10" cy="8" r="3.5"/><path d="M3.5 20c.6-3.6 3.2-5.5 6.5-5.5 1.3 0 2.5.3 3.5.9"/><path d="M18 14v6M15 17h6"/></svg>Aufnahme</a>
+      <a class="nav" data-view="kontakte"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="11" r="2.3"/><path d="M5.5 17c.5-2 1.9-3 3.5-3s3 1 3.5 3M14 9h4M14 13h4"/></svg>Kontakte</a>
+      <div class="grp">Finanzbuchhaltung</div>
+      <a class="nav" data-view="journal"><svg class="ic" viewBox="0 0 24 24"><path d="M5 4h14v16H5z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>Buchungsjournal</a>
+      <a class="nav" data-view="buchen"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h4"/></svg>Bank und Kasse</a>
+      <a class="nav" data-view="offen"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Offene Posten</a>
+      <a class="nav" data-view="beitraege"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v5M16 4v5M7 14h4M7 17h6"/></svg>Beiträge</a>
+      <a class="nav" data-view="belege"><svg class="ic" viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg>Belege</a>
+      <a class="nav" data-view="konten"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h4"/></svg>Kontenplan</a>
+      <div class="grp">Vereinsorganisation</div>
+      <a class="nav" data-view="schriftverkehr"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>Schriftverkehr</a>
+      <a class="nav" data-view="kalender"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Termine</a>
       <a class="nav" data-view="sponsoren"><svg class="ic" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Sponsoren</a>
       <a class="nav" data-view="portal_news"><svg class="ic" viewBox="0 0 24 24"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8M15 18h-5M10 6h8v4h-8z"/></svg>Portal-News</a>
-      <a class="nav" data-view="schriftverkehr"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>Schriftverkehr</a>
-      <a class="nav" data-view="kontakte"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="11" r="2.3"/><path d="M5.5 17c.5-2 1.9-3 3.5-3s3 1 3.5 3M14 9h4M14 13h4"/></svg>Kontakte & Partner</a>
-      <div class="grp">Buchhaltung</div>
-      <a class="nav" data-view="buchen"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Buchung erfassen</a>
-      <a class="nav" data-view="journal"><svg class="ic" viewBox="0 0 24 24"><path d="M5 4h14v16H5z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>Journal</a>
-      <a class="nav" data-view="offen"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Offene Posten</a>
-      <a class="nav" data-view="beitraege"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v5M16 4v5M7 14h4M7 17h6"/></svg>Jahresbeiträge</a>
-      <a class="nav" data-view="import"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 21h16"/></svg>Import (Excel/CSV)</a>
-      <a class="nav" data-view="lastschrift"><svg class="ic" viewBox="0 0 24 24"><path d="M4 17l6-6 4 4 6-8"/><path d="M14 7h6v6"/></svg>Lastschrift-Einzug</a>
-      <a class="nav" data-view="konten"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h4"/></svg>Kontenplan</a>
-      <a class="nav" data-view="belege"><svg class="ic" viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg>Belege</a>
-      <a class="nav" data-view="auswertung"><svg class="ic" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Auswertung / EÜR</a>
-      <div class="grp">System</div>
-      <a class="nav" data-view="cloud"><svg class="ic" viewBox="0 0 24 24"><path d="M7 18a4.5 4.5 0 1 1 .6-8.96A6 6 0 0 1 19 10a4 4 0 0 1-1 7.9"/><path d="M12 13v7M9 17l3 3 3-3"/></svg>Team & Cloud</a>
-      <a class="nav" data-view="einstellungen"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Einstellungen & Backup</a>
+      <div class="grp">Verwaltung</div>
+      <a class="nav" data-view="auswertung"><svg class="ic" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Auswertungen</a>
+      <a class="nav" data-view="import"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 21h16"/></svg>Import und Export</a>
+      <a class="nav" data-view="lastschrift"><svg class="ic" viewBox="0 0 24 24"><path d="M4 17l6-6 4 4 6-8"/><path d="M14 7h6v6"/></svg>Lastschrift</a>
+      <a class="nav" data-view="cloud"><svg class="ic" viewBox="0 0 24 24"><path d="M7 18a4.5 4.5 0 1 1 .6-8.96A6 6 0 0 1 19 10a4 4 0 0 1-1 7.9"/><path d="M12 13v7M9 17l3 3 3-3"/></svg>Team &amp; Cloud</a>
+      <a class="nav" data-view="einstellungen"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Einstellungen</a>
     </nav>
-    <div class="foot"><div id="cloudStatus" style="margin-bottom:.35rem"></div>Regelmäßig Backup ziehen! (Einstellungen)</div>
+    <div class="foot"><div id="cloudStatus" style="margin-bottom:.35rem"></div><span id="brandName">BSK Op Jück</span><span id="brandForm" style="display:none"></span></div>
   </aside>
 
   <div class="main">
@@ -244,7 +246,7 @@ th.sortable{cursor:pointer;user-select:none}th.sortable:hover{color:var(--gruen-
         <div><h1 id="viewTitle">Dashboard</h1><div class="sub" id="viewSub"></div></div>
       </div>
       <div style="display:flex;gap:.5rem">
-        <button class="btn btn-rot" onclick="go(\'aufnahme\')"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Mitglied aufnehmen</button>
+        <button class="btn btn-gruen" onclick="go(\'aufnahme\')"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Mitglied aufnehmen</button>
       </div>
     </div>
     <div class="content" id="content"></div>
