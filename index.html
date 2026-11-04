@@ -3749,7 +3749,7 @@ function hcUmlageErweitern(titel){
   '<div class="hint">Mitglieder die bereits eine Forderung haben werden übersprungen.</div>'+
   '<div class="frow3"><div class="field"><label>Betrag (€)</label><input id="um_betrag" type="number" step="0.01" min="0.01" value="'+refBetrag+'"></div><div class="field"><label>Fällig am</label><input id="um_faellig" type="date" value="'+refFaellig+'"></div><div class="field"><label>Erlöskonto</label><select id="um_konto">'+kEinn.map(function(k){return '<option value="'+k.nr+'"'+(k.nr===refKonto?' selected':'')+'>'+k.nr+' '+k.name+'</option>';}).join('')+'</select></div></div>'+
   '<h3 style="margin:.6rem 0 0">Mitglieder hinzufügen</h3><div id="um_liste"></div>'+
-  '<div class="mfoot"><button class="btn btn-hell" onclick="closeModal()">Abbrechen</button><button class="btn btn-rot" onclick="hcUmlageErweiternSpeichern('+JSON.stringify(titel)+')">Forderungen hinzufügen</button></div>',true);
+  '<div class="mfoot"><button class="btn btn-hell" onclick="closeModal()">Abbrechen</button><button class="btn btn-rot" onclick="hcUmlageErweiternSpeichern('+esc(JSON.stringify(titel))+')">Forderungen hinzufügen</button></div>',true);
   document.getElementById('um_liste').innerHTML=pickTabelle('umListeRender','um_zaehler',false);
   pickZaehler('um_zaehler');
 }
