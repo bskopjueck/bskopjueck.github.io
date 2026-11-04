@@ -3089,12 +3089,12 @@ function pickTabelle(renderFn,zid,mitRaten){
   var q=(window._pickQ||'').toLowerCase();
   var pool=window._pickPool.map(function(id){return mitglied(id);}).filter(function(m){return m&&(!q||(kName(m.kontaktId)+' '+m.mitgliedsnr).toLowerCase().indexOf(q)>=0);})
     .sort(function(a,b){return kName(a.kontaktId).localeCompare(kName(b.kontaktId));});
+  var jbYear=mitRaten?(parseInt(val('jb_jahr'),10)||DB.settings.geschaeftsjahr):0;
   return '<div style="display:flex;gap:.5rem;align-items:center;margin:.6rem 0 .4rem;flex-wrap:wrap">'+
   '<input type="search" placeholder="Mitglied suchen…" value="'+esc(window._pickQ||'')+'" oninput="window._pickQ=this.value;'+renderFn+'()" style="flex:1;min-width:160px;padding:.45rem .6rem;border:1.5px solid var(--linie);border-radius:8px">'+
   '<button class="btn btn-hell btn-sm" onclick="pickAlle(true,\'' + renderFn + '\',\'' + zid + '\')">Alle an</button><button class="btn btn-hell btn-sm" onclick="pickAlle(false,\'' + renderFn + '\',\'' + zid + '\')">Alle aus</button>'+
   '<span id="'+zid+'" style="font-size:.8rem;color:var(--grau)"></span></div>'+
   '<div class="tbl-wrap" style="max-height:260px;overflow-y:auto"><table><tr><th style="width:30px"></th><th>Mitglied</th><th>Art</th>'+(mitRaten?'<th class="num">Beitrag</th><th>Raten-Vereinbarung</th>':'')+'</tr>'+
-  var jbYear=mitRaten?(parseInt(val('jb_jahr'),10)||DB.settings.geschaeftsjahr):0;
   (pool.length?pool.map(function(m){
     var sel=window._pickR[m.id]||'std';
     var hasPlan=mitRaten&&m.hcBeitragsplaene&&m.hcBeitragsplaene[jbYear];
