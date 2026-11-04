@@ -3109,13 +3109,20 @@ function jahresbeitraegeStellen(ids){
   var pool=DB.mitglieder.filter(function(m){return m.status==='aktiv';});
   if(!pool.length){toast('Keine aktiven Mitglieder',true);return;}
   pickInit(pool,ids||null);
-  openModal('<h2>Jahresbeiträge stellen</h2>'+
-  '<div class="frow"><div class="field"><label>Beitragsjahr</label><input id="jb_jahr" type="number" value="'+s.geschaeftsjahr+'" onchange="jbPlanRender()"></div><div class="field"><label>Standard: zahlbar in</label><select id="jb_raten" onchange="jbPlanRender()">'+[1,2,3,4,6,12].map(function(r){return '<option value="'+r+'"'+(r==(s.ratenDefault||1)?' selected':'')+'>'+(r===1?'1 (Gesamtbetrag)':r+' Raten')+'</option>';}).join('')+'</select></div></div>'+
-  '<div id="jb_plan"></div>'+
+  var faelligDefault=s.geschaeftsjahr+'-'+(s.faelligkeit||'03-31');
+  if(faelligDefault<heute()){var d=new Date();d.setDate(d.getDate()+30);faelligDefault=d.toISOString().slice(0,10);}
+  openModal('<h2>Beitrag stellen</h2>'+
+  '<div class="frow"><div class="field" style="flex:2"><label>Bezeichnung</label><input id="jb_bezeichnung" type="text" value="Jahresbeitrag '+s.geschaeftsjahr+'" style="width:100%"></div><div class="field"><label>Jahr</label><input id="jb_jahr" type="number" value="'+s.geschaeftsjahr+'" onchange="document.getElementById(\'jb_bezeichnung\').value=\'Jahresbeitrag \'+this.value;jbListeRender()"></div></div>'+
+  '<div class="frow"><div class="field"><label>Fälligkeit</label><input id="jb_faellig" type="date" value="'+faelligDefault+'"></div><div class="field"><label>Betrag für alle (€)</label><input id="jb_betrag_alle" type="number" step="0.01" min="0" placeholder="0.00" oninput="jbBetragAlle(this.value)"></div></div>'+
   '<h3 style="margin:.6rem 0 0">Betroffene Mitglieder</h3><div id="jb_liste"></div>'+
-  '<div class="hint" style="margin-top:.8rem">Hake an, <b>wer eine Forderung bekommt</b>. In der Spalte <b>Beitrag</b> kannst du den Betrag je Mitglied anpassen. Klicke <b>📅 Plan</b>, um individuelle Ratenbeträge und Fälligkeiten festzulegen – ganz ohne Einstellungen. <label style="display:inline-flex;align-items:center;gap:.4rem;cursor:pointer;margin-top:.3rem"><input type="checkbox" id="jb_force"> Bereits vorhandene Beiträge für dieses Jahr stornieren und neu erstellen</label></div>'+
+  '<div class="hint">Hake an, <b>wer diese Forderung bekommt</b>. Den Betrag kannst du pro Mitglied in der Spalte anpassen. Du kannst diesen Dialog mehrmals starten, um verschiedene Raten oder Beitragslaeufe anzulegen.</div>'+
   '<div class="mfoot"><button class="btn btn-hell" onclick="closeModal()">Abbrechen</button><button class="btn btn-rot" onclick="jahresbeitraegeAusfuehren()">Beiträge stellen</button></div>',true);
-  jbListeRender();jbPlanRender();
+  jbListeRender();
+}
+function jbBetragAlle(v){
+  v=parseFloat(v)||0;
+  if(v>0)window._pickPool.forEach(function(id){window._pickB[id]=v;});
+  jbListeRender();
 }
 function jbListeRender(){
   var e=document.getElementById('jb_liste');if(!e)return;
@@ -3140,38 +3147,23 @@ function jbPlanRender(){
   }).join('');
   jbArten().forEach(function(a){ratenPlanSumme('jb_'+a.art,a.betrag);});
 }
-function hcJBPlanEdit(mid){var m=mitglied(mid);if(!m)return;var year=parseInt(val('jb_jahr'),10)||DB.settings.geschaeftsjahr;var total=window._pickB&&window._pickB[mid]>0?window._pickB[mid]:(m.beitragBetrag||DB.settings.beitraege[m.art]||0);if(total>0&&total!==(DB.settings.beitraege[m.art]||0))m.beitragBetrag=total;HC.planFromJB={year:val('jb_jahr'),raten:val('jb_raten'),pick:JSON.parse(JSON.stringify(window._pick||{})),pickB:JSON.parse(JSON.stringify(window._pickB||{})),pickR:JSON.parse(JSON.stringify(window._pickR||{}))};hcPlanEditor(mid,year);}
+function hcJBPlanEdit(mid){var m=mitglied(mid);if(!m)return;var year=parseInt(val('jb_jahr'),10)||DB.settings.geschaeftsjahr;HC.planFromJB={year:val('jb_jahr'),bezeichnung:val('jb_bezeichnung'),faellig:val('jb_faellig'),pick:JSON.parse(JSON.stringify(window._pick||{})),pickB:JSON.parse(JSON.stringify(window._pickB||{})),pickR:JSON.parse(JSON.stringify(window._pickR||{}))};hcPlanEditor(mid,year);}
 function jahresbeitraegeAusfuehren(){
-  var s=DB.settings;var jahr=parseInt(val('jb_jahr'),10);var raten=parseInt(val('jb_raten'),10)||1;if(!jahr)return;
+  var jahr=parseInt(val('jb_jahr'),10);
+  var bezeichnung=(val('jb_bezeichnung')||'Jahresbeitrag '+jahr).trim()||'Jahresbeitrag '+jahr;
+  var faellig=val('jb_faellig')||heute();
+  if(!jahr){toast('Jahr fehlt',true);return;}
   var ids=pickIds();
   if(!ids.length){toast('Kein Mitglied ausgewählt',true);return;}
-  var brauchtStd=ids.some(function(id){return (window._pickR[id]||'std')==='std';});
-  var plaene={};
-  if(raten>1&&brauchtStd){
-    var arten=jbArten();
-    for(var i=0;i<arten.length;i++){
-      var p=ratenPlanLesen('jb_'+arten[i].art,arten[i].betrag);
-      if(!p)return;
-      plaene[arten[i].art]=p;
-    }
-  }
   var n=0,skip=0;
-  var force=document.getElementById('jb_force')&&document.getElementById('jb_force').checked;
   ids.forEach(function(id){
     var m=mitglied(id);if(!m)return;
-    var sel=window._pickR[id]||'std';
-    var defBetrag=s.beitraege[m.art]||0;
-    var cBetrag=window._pickB&&window._pickB[id]>0?parseFloat(window._pickB[id])||defBetrag:defBetrag;
-    m.ratenVereinbarung=sel==='std'?null:parseInt(sel,10);
-    if(cBetrag>0&&cBetrag!==defBetrag)m.beitragBetrag=cBetrag;else delete m.beitragBetrag;
-    if(force){DB.buchungen.forEach(function(b){if(b.mitgliedId===m.id&&b.art==='beitrag'&&Number(b.jahr)===jahr&&b.status!=='storniert'){b.status='storniert';b.stornoGrund='Neuausstellung Jahresbeitrag '+jahr;b.storniertAm=heute();}});if(Array.isArray(m.beitragsjahre))m.beitragsjahre=m.beitragsjahre.filter(function(y){return Number(y)!==Number(jahr);});}
-    var ok;
-    if(sel==='std'&&cBetrag===defBetrag)ok=stellBeitrag(m,jahr,raten,null,plaene[m.art]||null,0);
-    else if(sel==='std')ok=stellBeitrag(m,jahr,raten,null,null,cBetrag);
-    else ok=stellBeitrag(m,jahr,parseInt(sel,10),null,null,cBetrag);
-    if(ok)n++;else skip++;
+    var cBetrag=window._pickB&&window._pickB[id]>0?parseFloat(window._pickB[id]):(DB.settings.beitraege[m.art]||0);
+    if(!(cBetrag>0)){skip++;return;}
+    buche({datum:heute(),faellig:faellig,jahr:jahr,text:bezeichnung+' – '+kName(m.kontaktId)+' ('+m.mitgliedsnr+')',soll:'1400',haben:'4000',betrag:cBetrag,kontaktId:m.kontaktId,mitgliedId:m.id,art:'beitrag',status:'offen'});
+    n++;
   });
-  save();closeModal();toast(n+' Beiträge gestellt'+(skip?', '+skip+' bereits vorhanden':''));go('offen');
+  save();closeModal();toast(n+' Beiträge gestellt'+(skip?' · '+skip+' ohne Betrag übersprungen':'')); go('offen');
 }
 /* ---- Sonderforderung / Projekt-Forderung ---- */
 function umlageDialog(ids){
@@ -3605,7 +3597,7 @@ function hcPlanRender(){var p=HC.plan;openModal('<h2>Persönlicher Beitragsplan 
 function hcPlanSum(){var p=HC.plan,sum=p.rows.reduce(function(s,r){return s+Math.round(r.betrag*100);},0),diff=Math.round(p.total*100)-sum;var el=document.getElementById('hp_sum');if(el){el.textContent='Ratensumme '+eur(sum/100)+' / Gesamt '+eur(p.total)+(diff===0?' · Stimmt':' · Differenz '+eur(diff/100));el.style.color=diff===0?'#208856':'#c7363d';}}
 function hcPlanSave(){var p=HC.plan;if(!p.rows.length||p.rows.some(function(r){return !Number.isFinite(r.betrag)||r.betrag<=0||!/^\d{4}-\d{2}-\d{2}$/.test(r.faellig);})||p.rows.reduce(function(s,r){return s+Math.round(r.betrag*100);},0)!==Math.round(p.total*100)){toast('Positive Raten mit gültigen Fälligkeiten eingeben. Die Ratensumme muss dem Gesamtbeitrag entsprechen.',true);return;}
 var result=hcTransact(function(){var m=mitglied(p.mid);if(!m)throw Error('Mitglied nicht gefunden');var existing=DB.buchungen.filter(function(b){return b.mitgliedId===p.mid&&b.art==='beitrag'&&Number(b.jahr)===p.year&&b.status!=='storniert';});if(p.hasBookings){if(existing.some(function(b){return gesperrtDatum(b.datum);}))throw Error('Eine betroffene Buchung liegt im abgeschlossenen Jahr.');if(existing.length!==p.oldIds.length||existing.some(function(b){return !p.oldIds.includes(b.id);}))throw Error('Der Beitragsstand hat sich geändert. Bitte neu öffnen.');p.rows.forEach(function(r){if(r.locked){var b=existing.find(function(b){return b.id===r.bookingId;});if(!b||b.betrag!==r.betrag||(b.faellig||b.datum)!==r.faellig)throw Error('Eine geschützte Rate wurde verändert.');}});existing.forEach(function(b){var row=p.rows.find(function(r){return r.bookingId===b.id;});if(gesamtBezahlt(b.id)>0&&(!row||!row.locked))throw Error('Eine Rate wurde zwischenzeitlich bezahlt. Bitte neu öffnen.');});existing.filter(function(b){return gesamtBezahlt(b.id)===0;}).forEach(function(b){b.status='storniert';b.stornoGrund='Individuelle Ratenplananpassung';b.storniertAm=heute();hcAudit('Beitragsrate ersetzt',b.id,b.stornoGrund);});p.rows.filter(function(r){return !r.locked;}).forEach(function(r,i){var b=buche({datum:heute(),faellig:r.faellig,jahr:p.year,text:'Jahresbeitrag '+p.year+' · individueller Ratenplan · '+kName(m.kontaktId),soll:'1400',haben:'4000',betrag:r.betrag,kontaktId:m.kontaktId,mitgliedId:m.id,art:'beitrag',status:'offen'});b.hcPlanVersion=new Date().toISOString();});}
-if(!m.hcBeitragsplaene)m.hcBeitragsplaene={};m.hcBeitragsplaene[p.year]={total:p.total,rows:p.rows.map(function(r){return {betrag:Math.round(r.betrag*100)/100,faellig:r.faellig};}),updated:new Date().toISOString()};hcAudit('Persönlicher Beitragsplan gespeichert',m.id,'Jahr '+p.year);return true;});if(result){if(HC.planFromJB){var state=HC.planFromJB;HC.planFromJB=null;closeModal();jahresbeitraegeStellen();window._pick=state.pick;window._pickB=state.pickB;window._pickR=state.pickR;var jy=document.getElementById('jb_jahr'),jr=document.getElementById('jb_raten');if(jy)jy.value=state.year;if(jr)jr.value=state.raten;jbListeRender();jbPlanRender();toast('Plan gespeichert – Beiträge stellen fortfahren');}else{closeModal();HC.accountYear=p.year;HC.memberTab='md_konto';mitgliedDetail(p.mid);toast('Individueller Beitragsplan gespeichert');}}}
+if(!m.hcBeitragsplaene)m.hcBeitragsplaene={};m.hcBeitragsplaene[p.year]={total:p.total,rows:p.rows.map(function(r){return {betrag:Math.round(r.betrag*100)/100,faellig:r.faellig};}),updated:new Date().toISOString()};hcAudit('Persönlicher Beitragsplan gespeichert',m.id,'Jahr '+p.year);return true;});if(result){if(HC.planFromJB){var state=HC.planFromJB;HC.planFromJB=null;closeModal();jahresbeitraegeStellen();window._pick=state.pick;window._pickB=state.pickB;window._pickR=state.pickR;var jy=document.getElementById('jb_jahr'),jb=document.getElementById('jb_bezeichnung'),jf=document.getElementById('jb_faellig');if(jy)jy.value=state.year;if(jb)jb.value=state.bezeichnung||('Jahresbeitrag '+state.year);if(jf&&state.faellig)jf.value=state.faellig;jbListeRender();toast('Plan gespeichert – Beiträge stellen fortfahren');}else{closeModal();HC.accountYear=p.year;HC.memberTab='md_konto';mitgliedDetail(p.mid);toast('Individueller Beitragsplan gespeichert');}}}
 var hcOldStellBeitrag=stellBeitrag;
 stellBeitrag=function(m,jahr,raten,datum,plan,betragOverride){if(DB.buchungen.some(function(b){return b.mitgliedId===m.id&&b.art==='beitrag'&&Number(b.jahr)===Number(jahr)&&b.status!=='storniert';}))return 0;var saved=m.hcBeitragsplaene&&m.hcBeitragsplaene[jahr];if(saved){plan=saved.rows;betragOverride=saved.total;raten=plan.length;}if(plan&&plan.length){if(plan.some(function(r){return !(r.betrag>0)||!r.faellig;}))throw Error('Individueller Beitragsplan ist unvollständig.');}return hcOldStellBeitrag(m,jahr,raten,datum,plan,betragOverride);};
 /* Correct status-preserving partial payment display throughout internal views. */
@@ -3655,7 +3647,88 @@ stornoAusfuehren=function(id,reason){var original=DB.buchungen.find(function(b){
 var hcFinalBrief=briefHTML;briefHTML=function(typ,mid,extra){var html=hcFinalBrief(typ,mid,extra);if(typ==='beitritt')html=html.replace(/Bitte überweise den Gesamtbetrag von [^<]+ innerhalb von 14 Tagen auf unser Konto:/,'Bitte überweise die jeweils offenen Raten zu den oben genannten Fälligkeiten auf unser Konto:');return html;};
 /* Financial summary for contributions uses remaining amounts, including partial payments. */
 function vBeitraege(){var groups={};DB.buchungen.filter(function(b){return ['beitrag','umlage'].includes(b.art)&&b.status!=='storniert';}).forEach(function(b){var key=b.art==='beitrag'?'Jahresbeiträge '+b.jahr:(b.umlage||'Sonderforderung');if(!groups[key])groups[key]={type:b.art,year:b.jahr,tag:b.umlage,rows:[],total:0,paid:0,open:0};var g=groups[key];g.rows.push(b);g.total+=b.betrag;g.paid+=gesamtBezahlt(b.id);g.open+=offenNoch(b);});var keys=Object.keys(groups).sort().reverse();C('<div class="toolbar">'+hcBtn('+ Jahresbeiträge stellen','jahresbeitraegeStellen()',true)+hcBtn('+ Sonderforderung','umlageDialog()')+hcBtn('Beitragsübersicht drucken','beitragsuebersichtDrucken()')+'</div><div class="card hc-tablecard"><div class="tbl-wrap"><table><thead><tr><th>Lauf / Forderung</th><th>Mitglieder</th><th class="num">Soll</th><th class="num">Bezahlt</th><th class="num">Offen</th><th></th></tr></thead><tbody>'+keys.map(function(key){var g=groups[key],ids=new Set(g.rows.map(function(b){return b.mitgliedId;}));return '<tr><td>'+esc(key)+'</td><td>'+ids.size+'</td><td class="num">'+eur(g.total)+'</td><td class="num">'+eur(g.paid)+'</td><td class="num">'+eur(g.open)+'</td><td>'+hcBtn('Details','hcContributionDetails('+JSON.stringify(key)+')')+(g.type==='beitrag'?' '+hcBtn('Jahr löschen','jahreskorrekturSeite('+Number(g.year)+')'):'')+'</td></tr>';}).join('')+(keys.length?'':'<tr><td colspan="6" class="empty">Noch keine Beitragsläufe oder Sonderforderungen.</td></tr>')+'</tbody></table></div></div>');HC.contributionGroups=groups;}
-function hcContributionDetails(key){var g=HC.contributionGroups[key];if(!g)return;openModal('<h2>'+esc(key)+'</h2><div class="tbl-wrap"><table><tr><th>Mitglied</th><th>Fälligkeit</th><th class="num">Soll</th><th class="num">Bezahlt</th><th class="num">Offen</th><th></th></tr>'+g.rows.map(function(b){return '<tr><td>'+esc(kName(b.kontaktId))+'</td><td>'+dt(b.faellig||b.datum)+'</td><td class="num">'+eur(b.betrag)+'</td><td class="num">'+eur(gesamtBezahlt(b.id))+'</td><td class="num">'+eur(offenNoch(b))+'</td><td>'+hcBtn('Mitgliedsakte','closeModal();HC.accountYear='+Number(b.jahr||DB.settings.geschaeftsjahr)+';HC.memberTab=\'md_konto\';mitgliedDetail(\''+hcId(b.mitgliedId)+'\')')+'</td></tr>';}).join('')+'</table></div>',true);}
+function hcContributionDetails(key){
+  var g=HC.contributionGroups[key];if(!g)return;
+  var isUmlage=g.type==='umlage';
+  openModal('<h2>'+esc(key)+'</h2>'+
+  '<div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.6rem">'+
+  (isUmlage?hcBtn('+ Mitglied hinzufügen','closeModal();hcUmlageErweitern('+JSON.stringify(key)+')'):'')+
+  hcBtn('Unbezahlte stornieren','hcStornoForderungGesamt('+JSON.stringify(key)+')',false,'')+
+  '</div>'+
+  '<div class="tbl-wrap"><table><tr><th>Mitglied</th><th>Fälligkeit</th><th class="num">Soll</th><th class="num">Bezahlt</th><th class="num">Offen</th><th></th></tr>'+
+  g.rows.map(function(b){
+    var paid=gesamtBezahlt(b.id)>0;
+    return '<tr><td>'+esc(kName(b.kontaktId))+'</td><td>'+dt(b.faellig||b.datum)+'</td><td class="num">'+eur(b.betrag)+'</td><td class="num">'+eur(gesamtBezahlt(b.id))+'</td><td class="num">'+eur(offenNoch(b))+'</td><td style="white-space:nowrap">'+
+    hcBtn('Akte','closeModal();HC.accountYear='+Number(b.jahr||DB.settings.geschaeftsjahr)+';HC.memberTab=\'md_konto\';mitgliedDetail(\''+hcId(b.mitgliedId)+'\')',false,'btn-sm')+
+    (!paid?' '+hcBtn('Stornieren','hcStornoForderung(\''+ hcId(b.id)+'\','+JSON.stringify(key)+')',false,'btn-sm'):'') +
+    '</td></tr>';
+  }).join('')+
+  '</table></div>',true);
+}
+function hcStornoForderung(id,groupKey){
+  var b=DB.buchungen.find(function(x){return x.id===id;});
+  if(!b||b.status==='storniert')return;
+  if(gesamtBezahlt(id)>0){toast('Bereits bezahlt – bitte über Buchungsdetails stornieren.',true);return;}
+  b.status='storniert';b.stornoGrund='Manuell storniert';b.storniertAm=heute();
+  if(b.art==='beitrag'&&b.mitgliedId&&b.jahr){
+    var m=mitglied(b.mitgliedId);
+    if(m&&!DB.buchungen.some(function(x){return x.id!==id&&x.mitgliedId===m.id&&x.art==='beitrag'&&Number(x.jahr)===Number(b.jahr)&&x.status!=='storniert';})){
+      m.beitragsjahre=(m.beitragsjahre||[]).filter(function(y){return Number(y)!==Number(b.jahr);});
+    }
+  }
+  save();
+  var grps={};DB.buchungen.filter(function(b2){return ['beitrag','umlage'].includes(b2.art)&&b2.status!=='storniert';}).forEach(function(b2){var k2=b2.art==='beitrag'?'Jahresbeiträge '+b2.jahr:(b2.umlage||'Sonderforderung');if(!grps[k2])grps[k2]={type:b2.art,year:b2.jahr,tag:b2.umlage,rows:[],total:0,paid:0,open:0};var g=grps[k2];g.rows.push(b2);g.total+=b2.betrag;g.paid+=gesamtBezahlt(b2.id);g.open+=offenNoch(b2);});
+  HC.contributionGroups=grps;
+  if(grps[groupKey])hcContributionDetails(groupKey);else{closeModal();vBeitraege();}
+  toast('Storniert');
+}
+function hcStornoForderungGesamt(groupKey){
+  var g=HC.contributionGroups[groupKey];if(!g)return;
+  var unbez=g.rows.filter(function(b){return gesamtBezahlt(b.id)===0;});
+  var bez=g.rows.filter(function(b){return gesamtBezahlt(b.id)>0;});
+  if(!unbez.length){toast('Alle Buchungen bereits bezahlt – nichts zu stornieren.',true);return;}
+  if(!confirm(unbez.length+' unbezahlte Buchungen stornieren?'))return;
+  unbez.forEach(function(b){b.status='storniert';b.stornoGrund='Forderung storniert';b.storniertAm=heute();
+    if(b.art==='beitrag'&&b.mitgliedId&&b.jahr){var m=mitglied(b.mitgliedId);if(m&&!DB.buchungen.some(function(x){return x.id!==b.id&&x.mitgliedId===m.id&&x.art==='beitrag'&&Number(x.jahr)===Number(b.jahr)&&x.status!=='storniert';}))m.beitragsjahre=(m.beitragsjahre||[]).filter(function(y){return Number(y)!==Number(b.jahr);});}
+  });
+  save();
+  var grps2={};DB.buchungen.filter(function(b2){return ['beitrag','umlage'].includes(b2.art)&&b2.status!=='storniert';}).forEach(function(b2){var k2=b2.art==='beitrag'?'Jahresbeiträge '+b2.jahr:(b2.umlage||'Sonderforderung');if(!grps2[k2])grps2[k2]={type:b2.art,year:b2.jahr,tag:b2.umlage,rows:[],total:0,paid:0,open:0};var g2=grps2[k2];g2.rows.push(b2);g2.total+=b2.betrag;g2.paid+=gesamtBezahlt(b2.id);g2.open+=offenNoch(b2);});
+  HC.contributionGroups=grps2;
+  closeModal();vBeitraege();
+  toast(unbez.length+' Buchungen storniert'+(bez.length?' · '+bez.length+' bezahlt (unverändert)':'')); 
+}
+function hcUmlageErweitern(titel){
+  var pool=DB.mitglieder.filter(function(m){return m.status==='aktiv';});
+  if(!pool.length){toast('Keine aktiven Mitglieder',true);return;}
+  var existing=DB.buchungen.filter(function(b){return b.umlage===titel&&b.status!=='storniert';});
+  var existingIds=existing.map(function(b){return b.mitgliedId;});
+  pickInit(pool,null);
+  existingIds.forEach(function(id){delete window._pick[id];});
+  var kEinn=DB.konten.filter(function(k){return k.typ==='einnahme';});
+  var refBetrag=existing.length?existing[0].betrag:0;
+  var refKonto=existing.length?(existing[0].haben||'4400'):'4400';
+  var refFaellig=existing.length?(existing[0].faellig||heute()):fristDatum(30);
+  openModal('<h2>Mitglied zu „'+esc(titel)+'“ hinzufügen</h2>'+
+  '<div class="hint">Mitglieder die bereits eine Forderung haben werden übersprungen.</div>'+
+  '<div class="frow3"><div class="field"><label>Betrag (€)</label><input id="um_betrag" type="number" step="0.01" min="0.01" value="'+refBetrag+'"></div><div class="field"><label>Fällig am</label><input id="um_faellig" type="date" value="'+refFaellig+'"></div><div class="field"><label>Erlöskonto</label><select id="um_konto">'+kEinn.map(function(k){return '<option value="'+k.nr+'"'+(k.nr===refKonto?' selected':'')+'>'+k.nr+' '+k.name+'</option>';}).join('')+'</select></div></div>'+
+  '<h3 style="margin:.6rem 0 0">Mitglieder hinzufügen</h3><div id="um_liste"></div>'+
+  '<div class="mfoot"><button class="btn btn-hell" onclick="closeModal()">Abbrechen</button><button class="btn btn-rot" onclick="hcUmlageErweiternSpeichern('+JSON.stringify(titel)+')">Forderungen hinzufügen</button></div>',true);
+  document.getElementById('um_liste').innerHTML=pickTabelle('hcUmlageListeRender','um_zaehler',false);
+  pickZaehler('um_zaehler');
+}
+function hcUmlageErweiternSpeichern(titel){
+  var betrag=parseFloat(val('um_betrag'));var faellig=val('um_faellig')||fristDatum(30);var konto=val('um_konto')||'4400';
+  if(!(betrag>0)){toast('Betrag fehlt',true);return;}
+  var ids=pickIds();if(!ids.length){toast('Kein Mitglied ausgewählt',true);return;}
+  var n=0,skip=0;
+  ids.forEach(function(id){
+    var m=mitglied(id);if(!m)return;
+    if(DB.buchungen.some(function(b){return b.mitgliedId===m.id&&b.umlage===titel&&b.status!=='storniert';})){skip++;return;}
+    buche({datum:heute(),faellig:faellig,umlage:titel,text:titel+' – '+kName(m.kontaktId)+' ('+m.mitgliedsnr+')',soll:'1400',haben:konto,betrag:betrag,kontaktId:m.kontaktId,mitgliedId:m.id,art:'umlage',status:'offen'});
+    n++;
+  });
+  save();closeModal();toast(n+' Forderungen hinzugefügt'+(skip?' · '+skip+' bereits vorhanden':'')); vBeitraege();
+}
 function jahreskorrekturSeite(year){
   var beitraege=DB.buchungen.filter(function(b){return b.art==='beitrag'&&Number(b.jahr)===year&&b.status!=='storniert';});
   var count=beitraege.length;
