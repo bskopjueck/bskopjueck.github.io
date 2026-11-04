@@ -3094,11 +3094,13 @@ function pickTabelle(renderFn,zid,mitRaten){
   '<button class="btn btn-hell btn-sm" onclick="pickAlle(true,\'' + renderFn + '\',\'' + zid + '\')">Alle an</button><button class="btn btn-hell btn-sm" onclick="pickAlle(false,\'' + renderFn + '\',\'' + zid + '\')">Alle aus</button>'+
   '<span id="'+zid+'" style="font-size:.8rem;color:var(--grau)"></span></div>'+
   '<div class="tbl-wrap" style="max-height:260px;overflow-y:auto"><table><tr><th style="width:30px"></th><th>Mitglied</th><th>Art</th>'+(mitRaten?'<th class="num">Beitrag</th><th>Raten-Vereinbarung</th>':'')+'</tr>'+
+  var jbYear=mitRaten?(parseInt(val('jb_jahr'),10)||DB.settings.geschaeftsjahr):0;
   (pool.length?pool.map(function(m){
     var sel=window._pickR[m.id]||'std';
+    var hasPlan=mitRaten&&m.hcBeitragsplaene&&m.hcBeitragsplaene[jbYear];
     return '<tr><td><input type="checkbox" '+(window._pick[m.id]?'checked':'')+' onchange="pickT(this,\'' + m.id + '\',\'' + zid + '\')"></td>'+
     '<td><b>'+esc(kName(m.kontaktId))+'</b> <span class="mnr">'+m.mitgliedsnr+'</span></td><td><small>'+ARTEN[m.art]+'</small></td>'+
-    (mitRaten?'<td class="num"><input type="number" step="0.01" min="0" value="'+((window._pickB&&window._pickB[m.id]>0?window._pickB[m.id]:DB.settings.beitraege[m.art])||0)+'" oninput="window._pickB[\'' + m.id + '\']=parseFloat(this.value)||0" style="width:90px;padding:.25rem .35rem;border:1.5px solid var(--linie);border-radius:6px;text-align:right"></td><td><select onchange="window._pickR[\'' + m.id + '\']=this.value" style="padding:.3rem;border:1.5px solid var(--linie);border-radius:6px"><option value="std"'+(sel==='std'?' selected':'')+'>Standard (wie Lauf)</option>'+[1,2,3,4,6,12].map(function(r){return '<option value="'+r+'"'+(String(r)===sel?' selected':'')+'>'+(r===1?'1 – Gesamtbetrag':r+' Raten (gleichmäßig)')+'</option>';}).join('')+'</select></td>':'')+'</tr>';
+    (mitRaten?'<td class="num"><input type="number" step="0.01" min="0" value="'+((window._pickB&&window._pickB[m.id]>0?window._pickB[m.id]:DB.settings.beitraege[m.art])||0)+'" oninput="window._pickB[\'' + m.id + '\']=parseFloat(this.value)||0" style="width:90px;padding:.25rem .35rem;border:1.5px solid var(--linie);border-radius:6px;text-align:right"></td><td><select onchange="window._pickR[\'' + m.id + '\']=this.value" style="padding:.3rem;border:1.5px solid var(--linie);border-radius:6px"><option value="std"'+(sel==='std'?' selected':'')+'>Standard (wie Lauf)</option>'+[1,2,3,4,6,12].map(function(r){return '<option value="'+r+'"'+(String(r)===sel?' selected':'')+'>'+(r===1?'1 – Gesamtbetrag':r+' Raten (gleichmäßig)')+'</option>';}).join('')+'</select> <button class="btn '+(hasPlan?'btn-gruen':'btn-hell')+' btn-sm" onclick="hcJBPlanEdit(\''+m.id+'\')" title="Individuellen Ratenplan festlegen">'+(hasPlan?'✓ Plan':'📅 Plan')+'</button></td>':'')+'</tr>';
   }).join(''):'<tr><td colspan="5" class="empty">Keine Treffer.</td></tr>')+'</table></div>';
 }
 /* ---- Jahresbeiträge ---- */
@@ -3111,7 +3113,7 @@ function jahresbeitraegeStellen(ids){
   '<div class="frow"><div class="field"><label>Beitragsjahr</label><input id="jb_jahr" type="number" value="'+s.geschaeftsjahr+'" onchange="jbPlanRender()"></div><div class="field"><label>Standard: zahlbar in</label><select id="jb_raten" onchange="jbPlanRender()">'+[1,2,3,4,6,12].map(function(r){return '<option value="'+r+'"'+(r==(s.ratenDefault||1)?' selected':'')+'>'+(r===1?'1 (Gesamtbetrag)':r+' Raten')+'</option>';}).join('')+'</select></div></div>'+
   '<div id="jb_plan"></div>'+
   '<h3 style="margin:.6rem 0 0">Betroffene Mitglieder</h3><div id="jb_liste"></div>'+
-  '<div class="hint" style="margin-top:.8rem">Hake an, <b>wer eine Forderung bekommt</b>. In der Spalte <b>Beitrag</b> kannst du den Betrag je Mitglied anpassen – z. B. bei Teilnahme an nur wenigen Zügen oder einer Sonder­vereinbarung. In der Spalte <b>Raten-Vereinbarung</b> stellst du ein, ob nach Standard-Plan oder einer eigenen Vereinbarung gezahlt wird. Beides wird am Mitglied gespeichert und beim nächsten Lauf automatisch vorbelegt. Wer für das Jahr schon einen Beitrag hat, wird übersprungen.</div>'+
+  '<div class="hint" style="margin-top:.8rem">Hake an, <b>wer eine Forderung bekommt</b>. In der Spalte <b>Beitrag</b> kannst du den Betrag je Mitglied anpassen. Klicke <b>📅 Plan</b>, um individuelle Ratenbeträge und Fälligkeiten festzulegen – ganz ohne Einstellungen. <label style="display:inline-flex;align-items:center;gap:.4rem;cursor:pointer;margin-top:.3rem"><input type="checkbox" id="jb_force"> Bereits vorhandene Beiträge für dieses Jahr stornieren und neu erstellen</label></div>'+
   '<div class="mfoot"><button class="btn btn-hell" onclick="closeModal()">Abbrechen</button><button class="btn btn-rot" onclick="jahresbeitraegeAusfuehren()">Beiträge stellen</button></div>',true);
   jbListeRender();jbPlanRender();
 }
@@ -3138,6 +3140,7 @@ function jbPlanRender(){
   }).join('');
   jbArten().forEach(function(a){ratenPlanSumme('jb_'+a.art,a.betrag);});
 }
+function hcJBPlanEdit(mid){var m=mitglied(mid);if(!m)return;var year=parseInt(val('jb_jahr'),10)||DB.settings.geschaeftsjahr;var total=window._pickB&&window._pickB[mid]>0?window._pickB[mid]:(m.beitragBetrag||DB.settings.beitraege[m.art]||0);if(total>0&&total!==(DB.settings.beitraege[m.art]||0))m.beitragBetrag=total;HC.planFromJB={year:val('jb_jahr'),raten:val('jb_raten'),pick:JSON.parse(JSON.stringify(window._pick||{})),pickB:JSON.parse(JSON.stringify(window._pickB||{})),pickR:JSON.parse(JSON.stringify(window._pickR||{}))};hcPlanEditor(mid,year);}
 function jahresbeitraegeAusfuehren(){
   var s=DB.settings;var jahr=parseInt(val('jb_jahr'),10);var raten=parseInt(val('jb_raten'),10)||1;if(!jahr)return;
   var ids=pickIds();
@@ -3153,6 +3156,7 @@ function jahresbeitraegeAusfuehren(){
     }
   }
   var n=0,skip=0;
+  var force=document.getElementById('jb_force')&&document.getElementById('jb_force').checked;
   ids.forEach(function(id){
     var m=mitglied(id);if(!m)return;
     var sel=window._pickR[id]||'std';
@@ -3160,6 +3164,7 @@ function jahresbeitraegeAusfuehren(){
     var cBetrag=window._pickB&&window._pickB[id]>0?parseFloat(window._pickB[id])||defBetrag:defBetrag;
     m.ratenVereinbarung=sel==='std'?null:parseInt(sel,10);
     if(cBetrag>0&&cBetrag!==defBetrag)m.beitragBetrag=cBetrag;else delete m.beitragBetrag;
+    if(force){DB.buchungen.forEach(function(b){if(b.mitgliedId===m.id&&b.art==='beitrag'&&Number(b.jahr)===jahr&&b.status!=='storniert'){b.status='storniert';b.stornoGrund='Neuausstellung Jahresbeitrag '+jahr;b.storniertAm=heute();}});if(Array.isArray(m.beitragsjahre))m.beitragsjahre=m.beitragsjahre.filter(function(y){return Number(y)!==Number(jahr);});}
     var ok;
     if(sel==='std'&&cBetrag===defBetrag)ok=stellBeitrag(m,jahr,raten,null,plaene[m.art]||null,0);
     else if(sel==='std')ok=stellBeitrag(m,jahr,raten,null,null,cBetrag);
@@ -3600,7 +3605,7 @@ function hcPlanRender(){var p=HC.plan;openModal('<h2>Persönlicher Beitragsplan 
 function hcPlanSum(){var p=HC.plan,sum=p.rows.reduce(function(s,r){return s+Math.round(r.betrag*100);},0),diff=Math.round(p.total*100)-sum;var el=document.getElementById('hp_sum');if(el){el.textContent='Ratensumme '+eur(sum/100)+' / Gesamt '+eur(p.total)+(diff===0?' · Stimmt':' · Differenz '+eur(diff/100));el.style.color=diff===0?'#208856':'#c7363d';}}
 function hcPlanSave(){var p=HC.plan;if(!p.rows.length||p.rows.some(function(r){return !Number.isFinite(r.betrag)||r.betrag<=0||!/^\d{4}-\d{2}-\d{2}$/.test(r.faellig);})||p.rows.reduce(function(s,r){return s+Math.round(r.betrag*100);},0)!==Math.round(p.total*100)){toast('Positive Raten mit gültigen Fälligkeiten eingeben. Die Ratensumme muss dem Gesamtbeitrag entsprechen.',true);return;}
 var result=hcTransact(function(){var m=mitglied(p.mid);if(!m)throw Error('Mitglied nicht gefunden');var existing=DB.buchungen.filter(function(b){return b.mitgliedId===p.mid&&b.art==='beitrag'&&Number(b.jahr)===p.year&&b.status!=='storniert';});if(p.hasBookings){if(existing.some(function(b){return gesperrtDatum(b.datum);}))throw Error('Eine betroffene Buchung liegt im abgeschlossenen Jahr.');if(existing.length!==p.oldIds.length||existing.some(function(b){return !p.oldIds.includes(b.id);}))throw Error('Der Beitragsstand hat sich geändert. Bitte neu öffnen.');p.rows.forEach(function(r){if(r.locked){var b=existing.find(function(b){return b.id===r.bookingId;});if(!b||b.betrag!==r.betrag||(b.faellig||b.datum)!==r.faellig)throw Error('Eine geschützte Rate wurde verändert.');}});existing.forEach(function(b){var row=p.rows.find(function(r){return r.bookingId===b.id;});if(gesamtBezahlt(b.id)>0&&(!row||!row.locked))throw Error('Eine Rate wurde zwischenzeitlich bezahlt. Bitte neu öffnen.');});existing.filter(function(b){return gesamtBezahlt(b.id)===0;}).forEach(function(b){b.status='storniert';b.stornoGrund='Individuelle Ratenplananpassung';b.storniertAm=heute();hcAudit('Beitragsrate ersetzt',b.id,b.stornoGrund);});p.rows.filter(function(r){return !r.locked;}).forEach(function(r,i){var b=buche({datum:heute(),faellig:r.faellig,jahr:p.year,text:'Jahresbeitrag '+p.year+' · individueller Ratenplan · '+kName(m.kontaktId),soll:'1400',haben:'4000',betrag:r.betrag,kontaktId:m.kontaktId,mitgliedId:m.id,art:'beitrag',status:'offen'});b.hcPlanVersion=new Date().toISOString();});}
-if(!m.hcBeitragsplaene)m.hcBeitragsplaene={};m.hcBeitragsplaene[p.year]={total:p.total,rows:p.rows.map(function(r){return {betrag:Math.round(r.betrag*100)/100,faellig:r.faellig};}),updated:new Date().toISOString()};hcAudit('Persönlicher Beitragsplan gespeichert',m.id,'Jahr '+p.year);return true;});if(result){closeModal();HC.accountYear=p.year;HC.memberTab='md_konto';mitgliedDetail(p.mid);toast('Individueller Beitragsplan gespeichert');}}
+if(!m.hcBeitragsplaene)m.hcBeitragsplaene={};m.hcBeitragsplaene[p.year]={total:p.total,rows:p.rows.map(function(r){return {betrag:Math.round(r.betrag*100)/100,faellig:r.faellig};}),updated:new Date().toISOString()};hcAudit('Persönlicher Beitragsplan gespeichert',m.id,'Jahr '+p.year);return true;});if(result){if(HC.planFromJB){var state=HC.planFromJB;HC.planFromJB=null;closeModal();jahresbeitraegeStellen();window._pick=state.pick;window._pickB=state.pickB;window._pickR=state.pickR;var jy=document.getElementById('jb_jahr'),jr=document.getElementById('jb_raten');if(jy)jy.value=state.year;if(jr)jr.value=state.raten;jbListeRender();jbPlanRender();toast('Plan gespeichert – Beiträge stellen fortfahren');}else{closeModal();HC.accountYear=p.year;HC.memberTab='md_konto';mitgliedDetail(p.mid);toast('Individueller Beitragsplan gespeichert');}}}
 var hcOldStellBeitrag=stellBeitrag;
 stellBeitrag=function(m,jahr,raten,datum,plan,betragOverride){if(DB.buchungen.some(function(b){return b.mitgliedId===m.id&&b.art==='beitrag'&&Number(b.jahr)===Number(jahr)&&b.status!=='storniert';}))return 0;var saved=m.hcBeitragsplaene&&m.hcBeitragsplaene[jahr];if(saved){plan=saved.rows;betragOverride=saved.total;raten=plan.length;}if(plan&&plan.length){if(plan.some(function(r){return !(r.betrag>0)||!r.faellig;}))throw Error('Individueller Beitragsplan ist unvollständig.');}return hcOldStellBeitrag(m,jahr,raten,datum,plan,betragOverride);};
 /* Correct status-preserving partial payment display throughout internal views. */
